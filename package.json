@@ -1,24 +1,25 @@
 {
-  "name": "@ethersphere/comment-system",
-  "version": "1.0.0",
-  "description": "A library for writing and reading comments from the Swarm network.",
-  "main": "index.js",
+  "name": "@solarpunkltd/comment-system",
+  "version": "1.1.2",
+  "description": "A library for writing and reading comments from the Swarm network. This is a modified version, will be used in DevCon Buzz application.",
+  "main": "dist/index.js",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "jest"
   },
   "exports": {
     ".": {
-      "default": "./build/index.js",
-      "types": "./build/types/index.d.ts",
-      "require": "./build/index.js",
-      "import": "./build/index.js"
+      "default": "./dist/index.js",
+      "types": "./dist/types/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ethersphere/comment-system.git"
+    "url": "git+https://github.com/Solar-Punk-Ltd/comment-system.git"
   },
   "keywords": [
     "swarm",
@@ -28,9 +29,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ethersphere/comment-system/issues"
+    "url": "https://github.com/Solar-Punk-Ltd/comment-system/issues"
   },
-  "homepage": "https://github.com/ethersphere/comment-system#readme",
+  "homepage": "https://github.com/Solar-Punk-Ltd/comment-system#readme",
   "devDependencies": {
     "@types/jest": "^29.5.7",
     "@types/node": "^20.8.10",

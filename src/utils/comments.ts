@@ -23,12 +23,13 @@ export function findCommentNode(nodes: CommentNode[], id: string): CommentNode |
 export function commentListToTree(comments: Comment[]): CommentNode[] {
   const nodes: CommentNode[] = []
 
-  comments.forEach(comment => {
+  comments.map(comment => {
     const { replyId } = comment
     const node = { comment, replies: [] }
 
     if (!replyId) {
-      return nodes.push(node)
+      nodes.push(node)
+      return node
     }
 
     const parentNode = findCommentNode(nodes, replyId)
@@ -36,6 +37,8 @@ export function commentListToTree(comments: Comment[]): CommentNode[] {
     if (parentNode) {
       parentNode.replies.push(node)
     }
+
+    return node
   })
 
   return nodes

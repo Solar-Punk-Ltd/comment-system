@@ -11,11 +11,14 @@
     "strict": true,
     "noImplicitAny": true,
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationDir": "./build/types",
-    "typeRoots": ["src/@types", "node_modules/@types"],
-    "outDir": "build",
-    "skipLibCheck": true,
-    "types": ["jest"]
+    "declaration": true,                       // Generate .d.ts files
+    "declarationDir": "./dist/types",           // Emit .d.ts files to /dist/types
+    "outDir": "dist",                           // Emit JavaScript output to /dist
+    "skipLibCheck": true,                       // Skip checking .d.ts files in node_modules
+    "typeRoots": ["src/@types", "node_modules/@types"],  // Custom types and node types
+    "types": ["jest"],                          // Include Jest types for testing
+    "noImplicitReturns": true,                  // Ensure all functions return a value
+    "noUnusedLocals": true,                     // Error on unused local variables
+    "noUnusedParameters": true                  // Error on unused parameters
   }
 }
