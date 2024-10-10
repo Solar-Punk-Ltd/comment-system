@@ -1,11 +1,12 @@
 {
   "name": "@solarpunkltd/comment-system",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A library for writing and reading comments from the Swarm network. This is a modified version, will be used in DevCon Buzz application.",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "clean": "rm -rf ./dist",
     "test": "jest"
   },
   "exports": {
@@ -19,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ethersphere/comment-system.git"
+    "url": "git+https://github.com/Solar-Punk-Ltd/comment-system.git"
   },
   "keywords": [
     "swarm",
@@ -29,21 +30,24 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ethersphere/comment-system/issues"
+    "url": "https://github.com/Solar-Punk-Ltd/comment-system/issues"
   },
-  "homepage": "https://github.com/ethersphere/comment-system#readme",
+  "homepage": "https://github.com/Solar-Punk-Ltd/comment-system#readme",
+  "dependencies": {
+    "@ethersphere/bee-js": "^8.1.0",
+    "ethers": "^6.13.3",
+    "uuid": "^9.0.1",
+    "vite-plugin-node-polyfills": "^0.22.0"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.7",
     "@types/node": "^20.8.10",
+    "@types/uuid": "^9.0.7",
     "eslint": "^8.52.0",
     "jest": "^29.7.0",
     "prettier": "^3.0.3",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
-  },
-  "dependencies": {
-    "@ethersphere/bee-js": "^6.4.1",
-    "ethers": "^6.8.0"
   }
 }

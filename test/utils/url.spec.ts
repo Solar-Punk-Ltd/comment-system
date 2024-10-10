@@ -1,4 +1,4 @@
-import { getIdentifierFromUrl } from '../../src/uitls/url'
+import { getIdentifierFromUrl } from '../../src/utils/url'
 
 describe('url utils tests', () => {
   test('getPathFromBzzUrl should parse valid links', () => {

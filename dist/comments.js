@@ -1,30 +1,32 @@
 import { Bee } from '@ethersphere/bee-js';
 import { ZeroHash } from 'ethers';
-import { getAddressFromIdentifier } from './uitls/url';
+import { v4 as uuid } from 'uuid';
+import { BEE_URL } from './constants/constants';
+import { getAddressFromIdentifier } from './utils/url';
 import { isComment } from './asserts/models.assert';
-import { numberToFeedIndex } from './uitls/feeds';
+import { numberToFeedIndex } from './utils/feeds';
+import { commentListToTree } from './utils';
 export async function writeComment(comment, options) {
     try {
         if (!options)
-            return;
+            return {};
         const { identifier, stamp, beeApiUrl, signer } = options;
         if (!stamp)
-            return;
-        //  const privateKey = optionsPrivateKey// || getPrivateKeyFromIdentifier(identifier) deprecated
-        const bee = new Bee(beeApiUrl || "http://localhost:1633");
-        const commentObject = Object.assign(Object.assign({}, comment), { timestamp: typeof comment.timestamp === 'number' ? comment.timestamp : new Date().getTime() });
+            return {};
+        const bee = new Bee(beeApiUrl || BEE_URL);
+        const commentObject = Object.assign(Object.assign({}, comment), { id: comment.id || uuid(), timestamp: typeof comment.timestamp === 'number' ? comment.timestamp : new Date().getTime() });
         const { reference } = await bee.uploadData(stamp, JSON.stringify(commentObject));
-        console.log("Data upload successful: ", reference);
-        console.log("Signer", signer);
+        console.log('Data upload successful: ', reference);
+        console.log('Signer', signer);
         const feedWriter = bee.makeFeedWriter('sequence', identifier || ZeroHash, signer);
-        console.log("feedWriter made: ", feedWriter);
+        console.log('feedWriter made: ', feedWriter);
         const r = await feedWriter.upload(stamp, reference);
-        console.log("feed updated: ", r);
+        console.log('feed updated: ', r);
         return commentObject;
     }
     catch (error) {
-        console.error("Error while writing comment: ", error);
-        return null;
+        console.error('Error while writing comment: ', error);
+        return {};
     }
 }
 export async function readComments(options) {
@@ -32,10 +34,10 @@ export async function readComments(options) {
         return [];
     const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress } = options;
     if (!identifier) {
-        console.error("No identifier");
+        console.error('No identifier');
         return [];
     }
-    const bee = new Bee(beeApiUrl || "http://localhost:1633");
+    const bee = new Bee(beeApiUrl || BEE_URL);
     const address = optionsAddress || getAddressFromIdentifier(identifier);
     const feedReader = bee.makeFeedReader('sequence', identifier || ZeroHash, address);
     const comments = [];
@@ -54,4 +56,8 @@ export async function readComments(options) {
         }
     }
     return comments;
+}
+export async function readCommentsAsTree(options) {
+    const comments = await readComments(options);
+    return commentListToTree(comments);
 }
