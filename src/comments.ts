@@ -14,7 +14,6 @@ export async function writeComment(comment: CommentRequest, options?: Options): 
     if (!options) return {} as Comment
     const { identifier, stamp, beeApiUrl, signer } = options
     if (!stamp) return {} as Comment
-    //  const privateKey = optionsPrivateKey// || getPrivateKeyFromIdentifier(identifier) deprecated
     const bee = new Bee(beeApiUrl || BEE_URL)
 
     const commentObject: Comment = {

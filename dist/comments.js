@@ -13,7 +13,6 @@ export async function writeComment(comment, options) {
         const { identifier, stamp, beeApiUrl, signer } = options;
         if (!stamp)
             return {};
-        //  const privateKey = optionsPrivateKey// || getPrivateKeyFromIdentifier(identifier) deprecated
         const bee = new Bee(beeApiUrl || BEE_URL);
         const commentObject = Object.assign(Object.assign({}, comment), { id: comment.id || uuid(), timestamp: typeof comment.timestamp === 'number' ? comment.timestamp : new Date().getTime() });
         const { reference } = await bee.uploadData(stamp, JSON.stringify(commentObject));

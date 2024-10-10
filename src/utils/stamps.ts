@@ -1,7 +1,7 @@
-import { BeeDebug, PostageBatch } from '@ethersphere/bee-js'
+import { Bee, PostageBatch } from '@ethersphere/bee-js'
 
 export async function getUsableStamp(beeDebugApiUrl: string): Promise<PostageBatch | undefined> {
-  const bee = new BeeDebug(beeDebugApiUrl)
+  const bee = new Bee(beeDebugApiUrl)
 
   const batches = await bee.getAllPostageBatch()
 
