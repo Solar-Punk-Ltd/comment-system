@@ -6,11 +6,6 @@ export function numberToFeedIndex(index) {
     dv.setUint32(4, index);
     return Utils.bytesToHex(bytes);
 }
-export function feedIndexToNumber(index) {
-    const bytes = Utils.hexToBytes(index);
-    const dv = new DataView(bytes.buffer);
-    return dv.getUint32(4);
-}
 export function makeNumericIndex(index) {
     if (index instanceof Uint8Array) {
         return Binary.uint64BEToNumber(index);

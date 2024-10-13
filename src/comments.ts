@@ -5,7 +5,7 @@ import { BEE_URL } from './constants/constants'
 import { Comment, CommentNode, CommentRequest, SingleComment } from './model/comment.model'
 import { getAddressFromIdentifier } from './utils/url'
 import { isComment } from './asserts/models.assert'
-import { numberToFeedIndex, feedIndexToNumber } from './utils/feeds'
+import { numberToFeedIndex, makeNumericIndex } from './utils/feeds'
 import { Options } from './model/options.model'
 import { commentListToTree } from './utils'
 import { FetchFeedUpdateResponse } from './utils/types'
@@ -175,7 +175,7 @@ export async function readSingleComment(options: Options): Promise<SingleComment
     return {} as SingleComment
   }
 
-  const nextIndex = feedIndexToNumber(feedUpdate.feedIndexNext)
+  const nextIndex = makeNumericIndex(feedUpdate.feedIndexNext)
   if (tags && tags.length > 0) {
     return tags.every(tag => comment.tags?.includes(tag))
       ? { comment: comment, nextIndex: nextIndex }

@@ -10,13 +10,6 @@ export function numberToFeedIndex(index: number): string {
   return Utils.bytesToHex(bytes)
 }
 
-export function feedIndexToNumber(index: string): number {
-  const bytes = Utils.hexToBytes(index)
-  const dv = new DataView(bytes.buffer)
-
-  return dv.getUint32(4)
-}
-
 export function makeNumericIndex(index: Index): number {
   if (index instanceof Uint8Array) {
     return Binary.uint64BEToNumber(index)

@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { BEE_URL } from './constants/constants';
 import { getAddressFromIdentifier } from './utils/url';
 import { isComment } from './asserts/models.assert';
-import { numberToFeedIndex, feedIndexToNumber } from './utils/feeds';
+import { numberToFeedIndex, makeNumericIndex } from './utils/feeds';
 import { commentListToTree } from './utils';
 export async function writeComment(comment, options) {
     try {
@@ -145,7 +145,7 @@ export async function readSingleComment(options) {
         console.error('Error while reading latest comment: ', error);
         return {};
     }
-    const nextIndex = feedIndexToNumber(feedUpdate.feedIndexNext);
+    const nextIndex = makeNumericIndex(feedUpdate.feedIndexNext);
     if (tags && tags.length > 0) {
         return tags.every(tag => { var _a; return (_a = comment.tags) === null || _a === void 0 ? void 0 : _a.includes(tag); })
             ? { comment: comment, nextIndex: nextIndex }
