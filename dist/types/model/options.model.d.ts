@@ -6,4 +6,7 @@ export interface Options {
     beeApiUrl?: string;
     privateKey?: string;
     approvedFeedAddress?: string;
+    tags?: string[];
+    startIx?: number;
+    endIx?: number;
 }
