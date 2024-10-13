@@ -2,7 +2,7 @@ import { Bee, Data } from '@ethersphere/bee-js'
 import { ZeroHash } from 'ethers'
 import { v4 as uuid } from 'uuid'
 import { BEE_URL } from './constants/constants'
-import { Comment, CommentNode, CommentRequest, LatestComment } from './model/comment.model'
+import { Comment, CommentNode, CommentRequest, SingleComment } from './model/comment.model'
 import { getAddressFromIdentifier } from './utils/url'
 import { isComment } from './asserts/models.assert'
 import { numberToFeedIndex, feedIndexToNumber } from './utils/feeds'
@@ -45,7 +45,7 @@ export async function readComments(options?: Options): Promise<Comment[]> {
   const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress, tags } = options
   if (!identifier) {
     console.error('No identifier')
-    return []
+    return [] as Comment[]
   }
 
   const bee = new Bee(beeApiUrl || BEE_URL)
@@ -60,7 +60,6 @@ export async function readComments(options?: Options): Promise<Comment[]> {
 
   while (true) {
     try {
-      console.log('baogy readComments nextIndex: ', nextIndex)
       const feedUpdate = await feedReader.download({ index: numberToFeedIndex(nextIndex++) })
 
       const data = await bee.downloadData(feedUpdate.reference)
@@ -91,12 +90,13 @@ export async function readCommentsAsTree(options?: Options): Promise<CommentNode
 export async function readCommentsAsync(options: Options): Promise<Comment[]> {
   const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress, tags, startIx, endIx } = options
   if (startIx === undefined || endIx === undefined) {
+    console.log('no start or end index - reading comments synchronously')
     return await readComments(options)
   }
 
   if (!identifier) {
     console.error('No identifier')
-    return []
+    return [] as Comment[]
   }
 
   const bee = new Bee(beeApiUrl || BEE_URL)
@@ -142,11 +142,11 @@ export async function readCommentsAsync(options: Options): Promise<Comment[]> {
   return comments
 }
 
-export async function readLatestComment(options: Options): Promise<LatestComment> {
-  const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress, tags } = options
+export async function readSingleComment(options: Options): Promise<SingleComment> {
+  const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress, tags, startIx } = options
   if (!identifier) {
     console.error('No identifier')
-    return {} as LatestComment
+    return {} as SingleComment
   }
 
   const bee = new Bee(beeApiUrl || BEE_URL)
@@ -157,26 +157,29 @@ export async function readLatestComment(options: Options): Promise<LatestComment
   let comment: Comment
   let feedUpdate: FetchFeedUpdateResponse
   try {
-    feedUpdate = await feedReader.download()
+    if (startIx !== undefined) {
+      feedUpdate = await feedReader.download({ index: numberToFeedIndex(startIx) })
+    } else {
+      feedUpdate = await feedReader.download()
+    }
     const data = await bee.downloadData(feedUpdate.reference)
     const parsedData = data.json()
     if (isComment(parsedData)) {
       comment = parsedData
     } else {
       console.log('object is not a comment')
-      return {} as LatestComment
+      return {} as SingleComment
     }
   } catch (error) {
     console.error('Error while reading latest comment: ', error)
-    return {} as LatestComment
+    return {} as SingleComment
   }
 
   const nextIndex = feedIndexToNumber(feedUpdate.feedIndexNext)
-  // TODO: fix tag filtering
   if (tags && tags.length > 0) {
     return tags.every(tag => comment.tags?.includes(tag))
       ? { comment: comment, nextIndex: nextIndex }
-      : ({} as LatestComment)
+      : ({} as SingleComment)
   }
 
   return { comment: comment, nextIndex: nextIndex }

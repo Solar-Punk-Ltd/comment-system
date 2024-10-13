@@ -15,11 +15,11 @@ export interface CommentNode {
     comment: Comment;
     replies: CommentNode[];
 }
-export interface LatestComment {
+export interface SingleComment {
     comment: Comment;
-    nextIndex: number;
+    nextIndex?: number;
 }
-export interface LastNComments {
+export interface CommentsWithIndex {
     comments: Comment[];
     nextIndex: number;
 }

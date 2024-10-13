@@ -44,7 +44,6 @@ export async function readComments(options) {
     let nextIndex = 0;
     while (true) {
         try {
-            console.log('baogy readComments nextIndex: ', nextIndex);
             const feedUpdate = await feedReader.download({ index: numberToFeedIndex(nextIndex++) });
             const data = await bee.downloadData(feedUpdate.reference);
             const comment = data.json();
@@ -68,6 +67,7 @@ export async function readCommentsAsTree(options) {
 export async function readCommentsAsync(options) {
     const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress, tags, startIx, endIx } = options;
     if (startIx === undefined || endIx === undefined) {
+        console.log('no start or end index - reading comments synchronously');
         return await readComments(options);
     }
     if (!identifier) {
@@ -113,8 +113,8 @@ export async function readCommentsAsync(options) {
     }
     return comments;
 }
-export async function readLatestComment(options) {
-    const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress, tags } = options;
+export async function readSingleComment(options) {
+    const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress, tags, startIx } = options;
     if (!identifier) {
         console.error('No identifier');
         return {};
@@ -125,7 +125,12 @@ export async function readLatestComment(options) {
     let comment;
     let feedUpdate;
     try {
-        feedUpdate = await feedReader.download();
+        if (startIx !== undefined) {
+            feedUpdate = await feedReader.download({ index: numberToFeedIndex(startIx) });
+        }
+        else {
+            feedUpdate = await feedReader.download();
+        }
         const data = await bee.downloadData(feedUpdate.reference);
         const parsedData = data.json();
         if (isComment(parsedData)) {
@@ -141,7 +146,6 @@ export async function readLatestComment(options) {
         return {};
     }
     const nextIndex = feedIndexToNumber(feedUpdate.feedIndexNext);
-    // TODO: fix tag filtering
     if (tags && tags.length > 0) {
         return tags.every(tag => { var _a; return (_a = comment.tags) === null || _a === void 0 ? void 0 : _a.includes(tag); })
             ? { comment: comment, nextIndex: nextIndex }

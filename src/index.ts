@@ -3,7 +3,7 @@ export {
   readCommentsAsTree,
   writeComment,
   readCommentsAsync,
-  readLatestComment,
+  readSingleComment,
 } from './comments'
 export * from './model'
 export * from './utils'
