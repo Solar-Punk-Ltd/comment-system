@@ -11,7 +11,8 @@ export function makeNumericIndex(index) {
         return Binary.uint64BEToNumber(index);
     }
     if (typeof index === 'string') {
-        const ix = parseInt(index);
+        const base = 16;
+        const ix = parseInt(index, base);
         if (isNaN(ix)) {
             return 0;
         }

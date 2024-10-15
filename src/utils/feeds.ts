@@ -16,7 +16,8 @@ export function makeNumericIndex(index: Index): number {
   }
 
   if (typeof index === 'string') {
-    const ix = parseInt(index)
+    const base = 16
+    const ix = parseInt(index, base)
     if (isNaN(ix)) {
       return 0
     }
