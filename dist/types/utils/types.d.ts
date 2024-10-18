@@ -14,4 +14,7 @@ interface FeedUpdateHeaders {
 }
 export interface FetchFeedUpdateResponse extends ReferenceResponse, FeedUpdateHeaders {
 }
+declare const feedTypes: readonly ["sequence", "epoch"];
+export type FeedType = (typeof feedTypes)[number];
+export declare const DEFAULT_FEED_TYPE: FeedType;
 export {};

@@ -6,6 +6,7 @@ import { getAddressFromIdentifier } from './utils/url';
 import { isComment } from './asserts/models.assert';
 import { numberToFeedIndex, makeNumericIndex } from './utils/feeds';
 import { commentListToTree } from './utils';
+import { DEFAULT_FEED_TYPE } from './utils/types';
 export async function writeComment(comment, options) {
     try {
         if (!options)
@@ -16,12 +17,33 @@ export async function writeComment(comment, options) {
         const bee = new Bee(beeApiUrl || BEE_URL);
         const commentObject = Object.assign(Object.assign({}, comment), { id: comment.id || uuid(), timestamp: typeof comment.timestamp === 'number' ? comment.timestamp : new Date().getTime(), tags: tags || [] });
         const { reference } = await bee.uploadData(stamp, JSON.stringify(commentObject));
-        console.log('Data upload successful: ', reference);
-        console.log('Signer', signer);
-        const feedWriter = bee.makeFeedWriter('sequence', identifier || ZeroHash, signer);
-        console.log('feedWriter made: ', feedWriter);
+        console.log('comment data upload successful: ', reference);
+        const feedWriter = bee.makeFeedWriter(DEFAULT_FEED_TYPE, identifier || ZeroHash, signer);
         const r = await feedWriter.upload(stamp, reference);
-        console.log('feed updated: ', r);
+        console.log('comment feed updated: ', r);
+        return commentObject;
+    }
+    catch (error) {
+        console.error('Error while writing comment: ', error);
+        return {};
+    }
+}
+export async function writeCommentToIndex(comment, options) {
+    try {
+        const { identifier, stamp, beeApiUrl, signer, tags, startIx } = options;
+        if (!stamp)
+            return {};
+        if (startIx === undefined) {
+            console.log('no index defined  - writing comment normally');
+            return writeComment(comment, options);
+        }
+        const bee = new Bee(beeApiUrl || BEE_URL);
+        const commentObject = Object.assign(Object.assign({}, comment), { id: comment.id || uuid(), timestamp: typeof comment.timestamp === 'number' ? comment.timestamp : new Date().getTime(), tags: tags || [] });
+        const { reference } = await bee.uploadData(stamp, JSON.stringify(commentObject));
+        console.log('comment data upload successful: ', reference);
+        const feedWriter = bee.makeFeedWriter(DEFAULT_FEED_TYPE, identifier || ZeroHash, signer);
+        const r = await feedWriter.upload(stamp, reference, { index: numberToFeedIndex(startIx) });
+        console.log('comment feed updated: ', r);
         return commentObject;
     }
     catch (error) {
@@ -39,7 +61,7 @@ export async function readComments(options) {
     }
     const bee = new Bee(beeApiUrl || BEE_URL);
     const address = optionsAddress || getAddressFromIdentifier(identifier);
-    const feedReader = bee.makeFeedReader('sequence', identifier || ZeroHash, address);
+    const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier || ZeroHash, address);
     const comments = [];
     let nextIndex = 0;
     while (true) {
@@ -76,7 +98,7 @@ export async function readCommentsAsync(options) {
     }
     const bee = new Bee(beeApiUrl || BEE_URL);
     const address = optionsAddress || getAddressFromIdentifier(identifier);
-    const feedReader = bee.makeFeedReader('sequence', identifier || ZeroHash, address);
+    const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier || ZeroHash, address);
     const comments = [];
     const actualStartIx = endIx > startIx ? startIx : endIx;
     const feedUpdatePromises = [];
@@ -121,7 +143,7 @@ export async function readSingleComment(options) {
     }
     const bee = new Bee(beeApiUrl || BEE_URL);
     const address = optionsAddress || getAddressFromIdentifier(identifier);
-    const feedReader = bee.makeFeedReader('sequence', identifier || ZeroHash, address);
+    const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier || ZeroHash, address);
     let comment;
     let feedUpdate;
     try {
@@ -145,7 +167,19 @@ export async function readSingleComment(options) {
         console.error('Error while reading latest comment: ', error);
         return {};
     }
-    const nextIndex = makeNumericIndex(feedUpdate.feedIndexNext);
+    let nextIndex;
+    if (startIx === undefined) {
+        try {
+            nextIndex = makeNumericIndex(feedUpdate.feedIndexNext);
+        }
+        catch (err) {
+            console.log('Error while getting next index: ', err);
+            return {};
+        }
+    }
+    else {
+        nextIndex = undefined;
+    }
     if (tags && tags.length > 0) {
         return tags.every(tag => { var _a; return (_a = comment.tags) === null || _a === void 0 ? void 0 : _a.includes(tag); })
             ? { comment: comment, nextIndex: nextIndex }

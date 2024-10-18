@@ -14,3 +14,6 @@ interface FeedUpdateHeaders {
   feedIndexNext: string
 }
 export interface FetchFeedUpdateResponse extends ReferenceResponse, FeedUpdateHeaders {}
+const feedTypes = ['sequence', 'epoch'] as const
+export type FeedType = (typeof feedTypes)[number]
+export const DEFAULT_FEED_TYPE: FeedType = 'sequence'

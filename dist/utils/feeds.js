@@ -14,12 +14,12 @@ export function makeNumericIndex(index) {
         const base = 16;
         const ix = parseInt(index, base);
         if (isNaN(ix)) {
-            return 0;
+            throw new TypeError(`Invalid index: ${index}`);
         }
         return ix;
     }
     if (typeof index === 'number') {
         return index;
     }
-    throw new TypeError('Unknown type of index!');
+    throw new TypeError(`Unknown type of index: ${index}`);
 }

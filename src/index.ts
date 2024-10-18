@@ -2,6 +2,7 @@ export {
   readComments,
   readCommentsAsTree,
   writeComment,
+  writeCommentToIndex,
   readCommentsAsync,
   readSingleComment,
 } from './comments'
