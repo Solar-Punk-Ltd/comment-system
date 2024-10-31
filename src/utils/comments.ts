@@ -1,4 +1,4 @@
-import { Comment, CommentNode } from '../model/comment.model'
+import { UserComment, CommentNode } from '../model/comment.model'
 
 export function findCommentNode(nodes: CommentNode[], id: string): CommentNode | undefined {
   let node: CommentNode | undefined
@@ -6,7 +6,7 @@ export function findCommentNode(nodes: CommentNode[], id: string): CommentNode |
   for (let i = 0; i < nodes.length; i++) {
     node = nodes[i]
 
-    if (node.comment.id === id) {
+    if (node.comment.message.messageId === id) {
       return node
     }
 
@@ -20,19 +20,19 @@ export function findCommentNode(nodes: CommentNode[], id: string): CommentNode |
   return node
 }
 
-export function commentListToTree(comments: Comment[]): CommentNode[] {
+export function commentListToTree(comments: UserComment[]): CommentNode[] {
   const nodes: CommentNode[] = []
 
   comments.map(comment => {
-    const { replyId } = comment
+    const { threadId } = comment.message
     const node = { comment, replies: [] }
 
-    if (!replyId) {
+    if (!threadId) {
       nodes.push(node)
       return node
     }
 
-    const parentNode = findCommentNode(nodes, replyId)
+    const parentNode = findCommentNode(nodes, threadId)
 
     if (parentNode) {
       parentNode.replies.push(node)
