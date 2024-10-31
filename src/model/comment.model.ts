@@ -6,7 +6,7 @@ export interface Comment {
   flagged?: boolean
   reason?: string
 }
-// TODO: delete ./dist folder
+
 export interface UserComment {
   message: Comment
   timestamp: number
@@ -38,7 +38,7 @@ export interface LegacyCommentRequest {
   tags?: string[]
 }
 
-export interface LegacyComment extends UserComment {
+export interface LegacyComment extends LegacyCommentRequest {
   id: string
   timestamp: number
   tags?: string[]
