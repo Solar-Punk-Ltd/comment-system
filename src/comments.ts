@@ -222,7 +222,6 @@ export async function readSingleComment(options: Options): Promise<SingleComment
         username: comment.user,
       } as UserComment
     } else {
-      console.log('object is not a comment')
       return {} as SingleComment
     }
   } catch (error) {
