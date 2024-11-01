@@ -29,10 +29,10 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
     }
 
     const { reference } = await bee.uploadData(stamp, JSON.stringify(userCommentObj))
-    console.log('comment data upload successful: ', reference)
+    console.log('Comment data upload successful: ', reference)
     const feedWriter = bee.makeFeedWriter(DEFAULT_FEED_TYPE, identifier || ZeroHash, signer)
     const r = await feedWriter.upload(stamp, reference)
-    console.log('comment feed updated: ', r)
+    console.log('Comment feed updated: ', r.reference)
 
     return userCommentObj
   } catch (error) {
@@ -46,7 +46,7 @@ export async function writeCommentToIndex(comment: UserComment, options: Options
     const { identifier, stamp, beeApiUrl, signer, startIx } = options
     if (!stamp) return {} as UserComment
     if (startIx === undefined) {
-      console.log('no index defined  - writing comment normally')
+      console.log('No index defined - writing comment to the latest index')
       return writeComment(comment, options)
     }
     const bee = new Bee(beeApiUrl || BEE_URL)
@@ -63,10 +63,10 @@ export async function writeCommentToIndex(comment: UserComment, options: Options
     }
 
     const { reference } = await bee.uploadData(stamp, JSON.stringify(userCommentObj))
-    console.log('comment data upload successful: ', reference)
+    console.log('Comment data upload successful: ', reference)
     const feedWriter = bee.makeFeedWriter(DEFAULT_FEED_TYPE, identifier || ZeroHash, signer)
     const r = await feedWriter.upload(stamp, reference, { index: numberToFeedIndex(startIx) })
-    console.log('comment feed updated: ', r)
+    console.log('Comment feed updated: ', r.reference)
 
     return userCommentObj
   } catch (error) {
@@ -145,43 +145,48 @@ export async function readCommentsAsync(options: Options): Promise<UserComment[]
   const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier || ZeroHash, address)
   const userComments: UserComment[] = []
 
-  const actualStartIx = endIx > startIx ? startIx : endIx
-  const feedUpdatePromises: Promise<FetchFeedUpdateResponse>[] = []
-  for (let i = actualStartIx; i <= endIx; i++) {
-    feedUpdatePromises.push(feedReader.download({ index: numberToFeedIndex(i) }))
-  }
-  const dataPromises: Promise<Data>[] = []
-  await Promise.allSettled(feedUpdatePromises).then(results => {
-    results.forEach(result => {
-      if (result.status === 'fulfilled') {
-        dataPromises.push(bee.downloadData(result.value.reference))
-      } else {
-        console.log('error fetching feed update: ', result.reason)
-      }
-    })
-  })
-
-  await Promise.allSettled(dataPromises).then(results => {
-    results.forEach(result => {
-      if (result.status === 'fulfilled') {
-        const comment = (result.value as Data).json()
-        if (isUserComment(comment)) {
-          userComments.push(comment)
-        } else if (isLegacyComment(comment)) {
-          userComments.push({
-            message: {
-              text: comment.data,
-              messageId: comment.id,
-            },
-            timestamp: comment.timestamp,
-            username: comment.user,
-          } as UserComment)
+  try {
+    const actualStartIx = endIx > startIx ? startIx : endIx
+    const feedUpdatePromises: Promise<FetchFeedUpdateResponse>[] = []
+    for (let i = actualStartIx; i <= endIx; i++) {
+      feedUpdatePromises.push(feedReader.download({ index: numberToFeedIndex(i) }))
+    }
+    const dataPromises: Promise<Data>[] = []
+    await Promise.allSettled(feedUpdatePromises).then(results => {
+      results.forEach(result => {
+        if (result.status === 'fulfilled') {
+          dataPromises.push(bee.downloadData(result.value.reference))
+        } else {
+          console.log('Failed fetching feed update: ', result.reason)
         }
-      } else {
-        console.log('error fetching comment data: ', result.reason)
-      }
+      })
     })
-  })
+
+    await Promise.allSettled(dataPromises).then(results => {
+      results.forEach(result => {
+        if (result.status === 'fulfilled') {
+          const comment = (result.value as Data).json()
+          if (isUserComment(comment)) {
+            userComments.push(comment)
+          } else if (isLegacyComment(comment)) {
+            userComments.push({
+              message: {
+                text: comment.data,
+                messageId: comment.id,
+              },
+              timestamp: comment.timestamp,
+              username: comment.user,
+            } as UserComment)
+          }
+        } else {
+          console.log('Failed fetching comment data: ', result.reason)
+        }
+      })
+    })
+  } catch (err) {
+    console.error(`Error while reading comments from ${startIx} to ${endIx}: ${err}`)
+    return [] as UserComment[]
+  }
 
   userComments.sort((a, b) => a.timestamp - b.timestamp)
 
@@ -229,7 +234,7 @@ export async function readSingleComment(options: Options): Promise<SingleComment
     return {} as SingleComment
   }
 
-  let nextIndex: number | undefined
+  let nextIndex: number | undefined = undefined
   if (startIx === undefined) {
     try {
       nextIndex = makeNumericIndex(feedUpdate.feedIndexNext)
@@ -237,8 +242,6 @@ export async function readSingleComment(options: Options): Promise<SingleComment
       console.log('Error while getting next index: ', err)
       return {} as SingleComment
     }
-  } else {
-    nextIndex = undefined
   }
 
   return { comment: userComment, nextIndex: nextIndex }
