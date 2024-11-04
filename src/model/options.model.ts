@@ -7,7 +7,6 @@ export interface Options {
   beeApiUrl?: string // defaults to http://localhost:1633
   privateKey?: string // If set, private key won't be derived from identifier
   approvedFeedAddress?: string // Address of feed that contains approved comments
-  tags?: string[] // tags to add to the comment
-  startIx?: number; // start index to load comments in the feed
-  endIx?: number; // end index for loading comments in the feed
+  startIx?: number // start index to load comments in the feed
+  endIx?: number // end index for loading comments in the feed
 }
