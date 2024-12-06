@@ -28,18 +28,3 @@ export interface CommentsWithIndex {
   comments: UserComment[]
   nextIndex: number
 }
-
-export interface LegacyCommentRequest {
-  user: string
-  data: string
-  timestamp?: number
-  replyId?: string
-  id?: string
-  tags?: string[]
-}
-
-export interface LegacyComment extends LegacyCommentRequest {
-  id: string
-  timestamp: number
-  tags?: string[]
-}

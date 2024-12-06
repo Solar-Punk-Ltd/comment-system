@@ -1,4 +1,4 @@
-import { UserComment, CommentNode } from '../model/comment.model'
+import { UserComment, CommentNode } from "../model/comment.model"
 
 export function findCommentNode(nodes: CommentNode[], id: string): CommentNode | undefined {
   let node: CommentNode | undefined

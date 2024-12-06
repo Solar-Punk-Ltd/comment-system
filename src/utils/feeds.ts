@@ -1,6 +1,6 @@
-import { Utils } from '@ethersphere/bee-js'
-import { Binary } from 'cafe-utility'
-import { Index } from './types'
+import { Utils } from "@ethersphere/bee-js"
+import { Binary } from "cafe-utility"
+import { Index } from "./types"
 
 export function numberToFeedIndex(index: number): string {
   const bytes = new Uint8Array(8)
@@ -15,7 +15,7 @@ export function makeNumericIndex(index: Index): number {
     return Binary.uint64BEToNumber(index)
   }
 
-  if (typeof index === 'string') {
+  if (typeof index === "string") {
     const base = 16
     const ix = parseInt(index, base)
     if (isNaN(ix)) {
@@ -24,7 +24,7 @@ export function makeNumericIndex(index: Index): number {
     return ix
   }
 
-  if (typeof index === 'number') {
+  if (typeof index === "number") {
     return index
   }
 
