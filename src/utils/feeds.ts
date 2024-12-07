@@ -2,7 +2,10 @@ import { Utils } from "@ethersphere/bee-js"
 import { Binary } from "cafe-utility"
 import { Index } from "./types"
 
-export function numberToFeedIndex(index: number): string {
+export function numberToFeedIndex(index: number | undefined): string | undefined {
+  if (index === undefined) {
+    return undefined
+  }
   const bytes = new Uint8Array(8)
   const dv = new DataView(bytes.buffer)
   dv.setUint32(4, index)

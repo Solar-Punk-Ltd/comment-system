@@ -189,11 +189,7 @@ export async function readSingleComment(options: Options): Promise<SingleComment
   let userComment: UserComment
   let feedUpdate: FetchFeedUpdateResponse
   try {
-    if (startIx !== undefined) {
-      feedUpdate = await feedReader.download({ index: numberToFeedIndex(startIx) })
-    } else {
-      feedUpdate = await feedReader.download()
-    }
+    feedUpdate = await feedReader.download({ index: numberToFeedIndex(startIx) })
     const data = await bee.downloadData(feedUpdate.reference)
     const comment = data.json()
     if (isUserComment(comment)) {

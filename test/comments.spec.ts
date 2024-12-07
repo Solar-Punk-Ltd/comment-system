@@ -1,5 +1,11 @@
 import nock from "nock"
-import { writeComment, readComments, writeCommentToIndex, readCommentsAsync } from "../src/index"
+import {
+  writeComment,
+  readComments,
+  writeCommentToIndex,
+  readCommentsAsync,
+  readSingleComment,
+} from "../src/index"
 import {
   MOCK_SERVER_URL,
   assertAllIsDone,
@@ -19,14 +25,6 @@ import {
   testChunkData3,
 } from "./utils"
 import { ReferenceResponse } from "@ethersphere/bee-js"
-import { ethers } from "ethers"
-
-export const generateSignature = async (privateKey: string, data: Uint8Array): Promise<string> => {
-  const wallet = new ethers.Wallet(privateKey)
-  const messageHash = ethers.hashMessage(data)
-  const signature = await wallet.signMessage(messageHash)
-  return signature
-}
 
 describe("Comments tests", () => {
   afterEach(() => nock.cleanAll())
@@ -122,6 +120,46 @@ describe("Comments tests", () => {
       })
 
       expect(comments.map(c => c)).toStrictEqual(mockComments)
+
+      assertAllIsDone()
+    })
+  })
+  // TODO: somehow matching the fetch to the /feeds ep with nock fails
+  describe("Write to and index and read that single comment", () => {
+    it("should write and read a single comment with lookup", async () => {
+      const startIx = 0
+      const socIdentifier0 = "da83f60c89eff2931d88a3293799119ca5fcc65ce3b0b4767ea9b8010e9a6e28"
+      const newDataRef0 = "c188df6a0a167f3fcdab13007606367a9abeb26b3d6ec1a72b4e195ff00bbddb"
+      const socReturnRef0 = "eb8da3795ea4f47b17d1b2740ace7ea0f97b85a8d1beb20e7902f48e79076bbc"
+
+      uploadDataMock(MOCK_STAMP).reply(200, {
+        reference: newDataRef0,
+      } as ReferenceResponse)
+      socPostMock(MOCK_STAMP, testIdentity.address, socIdentifier0).reply(200, {
+        reference: socReturnRef0,
+      } as ReferenceResponse)
+      console.log("bagoy first nock.activemocks", nock.activeMocks())
+      await writeCommentToIndex(mockComments[0], {
+        stamp: MOCK_STAMP,
+        identifier: feedIdentifier,
+        signer: testIdentity.privateKey,
+        beeApiUrl: MOCK_SERVER_URL,
+        approvedFeedAddress: testIdentity.address,
+        startIx,
+      })
+      fetchFeedUpdateMock(testIdentity.address, feedIdentifier).reply(200, uri => {
+        console.log("bagoy uri", uri)
+        return { reference: newDataRef0 }
+      })
+      downloadDataMock(newDataRef0).reply(200, JSON.stringify(mockComments[0]))
+      console.log("bagoy second nock.activemocks", nock.activeMocks())
+      const comment = await readSingleComment({
+        identifier: feedIdentifier,
+        approvedFeedAddress: testIdentity.address,
+        beeApiUrl: MOCK_SERVER_URL,
+      })
+
+      expect([comment]).toStrictEqual([{ comment: mockComments[0], nextIndex: 1 }])
 
       assertAllIsDone()
     })

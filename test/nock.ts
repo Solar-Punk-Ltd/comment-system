@@ -2,7 +2,6 @@ import nock from "nock"
 import { Reference } from "@ethersphere/bee-js"
 import { DEFAULT_FEED_TYPE, FeedType, HexEthAddress } from "../src/utils/types"
 
-// export const MOCK_SERVER_URL = "http://localhost:12345"
 export const MOCK_SERVER_URL = "http://localhost:1633"
 
 // Endpoints
@@ -24,8 +23,8 @@ export function fetchFeedUpdateMock(
 ): nock.Interceptor {
   return nock(MOCK_SERVER_URL)
     .defaultReplyHeaders({
-      "swarm-feed-index": "1",
-      "swarm-feed-index-next": "2",
+      "swarm-feed-index": "0",
+      "swarm-feed-index-next": "1",
     })
     .get(`${FEED_ENDPOINT}/${address}/${hashedTopic}?type=${type}`)
 }
