@@ -1,5 +1,6 @@
 import { Utils } from "@ethersphere/bee-js"
 import { Binary } from "cafe-utility"
+
 import { Index } from "./types"
 
 export function numberToFeedIndex(index: number | undefined): string | undefined {

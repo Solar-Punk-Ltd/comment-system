@@ -1,6 +1,7 @@
 import { Utils } from "@ethersphere/bee-js"
-import { Bytes } from "@ethersphere/bee-js/dist/types/utils/bytes"
-import { Wallet, hexlify } from "ethers"
+import { hexlify, Wallet } from "ethers"
+
+import { Bytes } from "./types"
 
 /** Extracts path of a bzz link. For example:
     http://localhost:1633/bzz/<hash>/c/2023/development-updates/July.html =>

@@ -1,4 +1,4 @@
-import { ReferenceResponse, FlavoredType } from "@ethersphere/bee-js"
+import { FlavoredType, ReferenceResponse } from "@ethersphere/bee-js"
 
 export interface Bytes<Length extends number> extends Uint8Array {
   readonly length: Length

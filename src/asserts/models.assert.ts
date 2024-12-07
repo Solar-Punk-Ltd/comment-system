@@ -1,4 +1,5 @@
 import { Comment, UserComment } from "../model/comment.model"
+
 import { isString } from "./general.assert"
 
 export function isUserComment(obj: unknown): obj is UserComment {

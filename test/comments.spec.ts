@@ -1,30 +1,32 @@
+import { ReferenceResponse } from "@ethersphere/bee-js"
 import nock from "nock"
+
 import {
-  writeComment,
   readComments,
-  writeCommentToIndex,
   readCommentsAsync,
   readSingleComment,
+  writeComment,
+  writeCommentToIndex,
 } from "../src/index"
+
 import {
-  MOCK_SERVER_URL,
   assertAllIsDone,
   downloadDataMock,
-  fetchFeedUpdateMock,
-  uploadDataMock,
-  socPostMock,
   fetchChunkMock,
+  fetchFeedUpdateMock,
+  MOCK_SERVER_URL,
+  socPostMock,
+  uploadDataMock,
 } from "./nock"
 import {
+  feedIdentifier,
   MOCK_STAMP,
   mockComments,
-  testIdentity,
-  feedIdentifier,
   testChunkData1,
   testChunkData2,
   testChunkData3,
+  testIdentity,
 } from "./utils"
-import { ReferenceResponse } from "@ethersphere/bee-js"
 
 describe("Comments tests", () => {
   afterEach(() => nock.cleanAll())

@@ -1,14 +1,15 @@
 import { Bee, Data } from "@ethersphere/bee-js"
 import { ZeroHash } from "ethers"
 import { v4 as uuid } from "uuid"
-import { BEE_URL } from "./constants/constants"
-import { Comment, CommentNode, UserComment, SingleComment } from "./model/comment.model"
-import { getAddressFromIdentifier } from "./utils/url"
+
 import { isUserComment } from "./asserts/models.assert"
-import { numberToFeedIndex, makeNumericIndex } from "./utils/feeds"
+import { BEE_URL } from "./constants/constants"
+import { Comment, CommentNode, SingleComment, UserComment } from "./model/comment.model"
 import { Options } from "./model/options.model"
-import { commentListToTree } from "./utils"
+import { makeNumericIndex, numberToFeedIndex } from "./utils/feeds"
 import { DEFAULT_FEED_TYPE, FetchFeedUpdateResponse } from "./utils/types"
+import { getAddressFromIdentifier } from "./utils/url"
+import { commentListToTree } from "./utils"
 
 export async function writeComment(comment: UserComment, options?: Options): Promise<UserComment> {
   try {
@@ -93,6 +94,7 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
 
   let nextIndex = 0
 
+  // eslint-disable-next-line
   while (true) {
     try {
       const feedUpdate = await feedReader.download({ index: numberToFeedIndex(nextIndex++) })

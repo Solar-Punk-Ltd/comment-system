@@ -1,5 +1,6 @@
-import nock from "nock"
 import { Reference } from "@ethersphere/bee-js"
+import nock from "nock"
+
 import { DEFAULT_FEED_TYPE, FeedType, HexEthAddress } from "../src/utils/types"
 
 export const MOCK_SERVER_URL = "http://localhost:1633"
