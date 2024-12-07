@@ -9,7 +9,15 @@ import {
   socPostMock,
   fetchChunkMock,
 } from "./nock"
-import { MOCK_STAMP, getTestFixture, testIdentity, testChunkHash, testChunkData } from "./utils"
+import {
+  MOCK_STAMP,
+  mockComments,
+  testIdentity,
+  feedIdentifier,
+  testChunkData1,
+  testChunkData2,
+  testChunkData3,
+} from "./utils"
 import { ReferenceResponse } from "@ethersphere/bee-js"
 import { ethers } from "ethers"
 
@@ -22,81 +30,100 @@ export const generateSignature = async (privateKey: string, data: Uint8Array): P
 
 describe("Comments tests", () => {
   afterEach(() => nock.cleanAll())
-  // TODO: get proper usercomment hash data
-  describe("Syncronous write and read", () => {
-    it("should write and read two comments to an url", async () => {
-      const { identifier, comments: expComments } = getTestFixture()
+
+  describe("Serial write and read", () => {
+    it("should write and read a comment to a topic", async () => {
       const socIdentifier = "da83f60c89eff2931d88a3293799119ca5fcc65ce3b0b4767ea9b8010e9a6e28"
-      fetchFeedUpdateMock(testIdentity.address, identifier).reply(404)
+      const dataRef = "85a759ecacc531cceb36a85e03c22bb6ddfea0f953c140070e41e3a47a1b8015"
+      const socReturnRef = "32cfcbcf624d6a42e1a4e9d5de77780d4e96f0b7a596151b6e0d436440071780"
+      const notFoundDataRef = "a329fb22940eac881d5d95c86b0aacb3923b82db071b5ed78b15882ea3a109b0"
+      const testChunkHash = "eb8da3795ea4f47b17d1b2740ace7ea0f97b85a8d1beb20e7902f48e79076bbc"
+
+      fetchFeedUpdateMock(testIdentity.address, feedIdentifier).reply(404)
       uploadDataMock(MOCK_STAMP).reply(200, {
-        reference: "32cfcbcf624d6a42e1a4e9d5de77780d4e96f0b7a596151b6e0d436440071780",
+        reference: dataRef,
       } as ReferenceResponse)
       socPostMock(MOCK_STAMP, testIdentity.address, socIdentifier).reply(200, {
-        reference: "32cfcbcf624d6a42e1a4e9d5de77780d4e96f0b7a596151b6e0d436440071780",
+        reference: socReturnRef,
       } as ReferenceResponse)
-      await writeComment(expComments[0], {
+      await writeComment(mockComments[0], {
         stamp: MOCK_STAMP,
-        identifier: identifier,
+        identifier: feedIdentifier,
         signer: testIdentity.privateKey,
         beeApiUrl: MOCK_SERVER_URL,
         approvedFeedAddress: testIdentity.address,
       })
-      fetchChunkMock(testChunkHash).reply(200, testChunkData)
-      downloadDataMock("85a759ecacc531cceb36a85e03c22bb6ddfea0f953c140070e41e3a47a1b8015").reply(
-        200,
-        JSON.stringify("random"),
-      )
-      fetchChunkMock("a329fb22940eac881d5d95c86b0aacb3923b82db071b5ed78b15882ea3a109b0").reply(404)
+      fetchChunkMock(testChunkHash).reply(200, testChunkData1)
+      downloadDataMock(dataRef).reply(200, JSON.stringify(mockComments[0]))
+      fetchChunkMock(notFoundDataRef).reply(404)
       const comments = await readComments({
-        identifier: identifier,
+        identifier: feedIdentifier,
         beeApiUrl: MOCK_SERVER_URL,
         approvedFeedAddress: testIdentity.address,
       })
-      expect(comments.map(({ username, message }) => ({ username, message }))).toStrictEqual([
-        {
-          username: expComments[0].username,
-          message: expComments[0].message,
-          timestamp: expComments[0].timestamp,
-        },
-      ])
+      console.log("object", comments)
+      expect(comments.map(c => c)).toStrictEqual([mockComments[0]])
     })
 
     assertAllIsDone()
   })
-  // TODO: finish async test
-  describe("Asyncronous write and read", () => {
+
+  describe("Write to index and parallel read", () => {
     it("should write to specific indices and read them back async", async () => {
-      const { identifier, comments: expComments } = getTestFixture()
       const startIx = 2
       const endIx = 3
-      await writeCommentToIndex(expComments[0], {
+      const socIdentifier2 = "06fe94021fb32dc7415b488b8f59026bae4cfe3145471bd9318573d99b12c5e1"
+      const socIdentifier3 = "687eb0ac11047efa8e8756f40799d053fef8c9e6f277cb7edeac28a09031f7ff"
+      const newDataRef2 = "0f23cb00d87a43272deb2bacf1672dd6212c0dc6a1b3f2e93618c600f46a27d8"
+      const newDataRef3 = "105f63f8013642e24f637e552fb6f85f64697ca4e0ae9037f268bd27e12a34ed"
+      const socReturnRef2 = "32cfcbcf624d6a42e1a4e9d5de77780d4e96f0b7a596151b6e0d436440071780"
+      const socReturnRef3 = "32cfcbcf624d6a42e1a4e9d5de77780d4e96f0b7a596151b6e0d436440071780"
+      const testChunkHash2 = "33af2a8f48fbe86fc5d8a681836c828cd0a4354d15d2a3a7b5e570eede7f2367"
+      const testChunkHash3 = "597270e86d1e21dafeef49239ca6d3c388b5636de1d3639214a70a5ad12d312f"
+
+      uploadDataMock(MOCK_STAMP).reply(200, {
+        reference: newDataRef2,
+      } as ReferenceResponse)
+      socPostMock(MOCK_STAMP, testIdentity.address, socIdentifier2).reply(200, {
+        reference: socReturnRef2,
+      } as ReferenceResponse)
+      await writeCommentToIndex(mockComments[0], {
         stamp: MOCK_STAMP,
-        identifier,
+        identifier: feedIdentifier,
         signer: testIdentity.privateKey,
         beeApiUrl: MOCK_SERVER_URL,
         approvedFeedAddress: testIdentity.address,
         startIx,
       })
-      await writeCommentToIndex(expComments[1], {
+      uploadDataMock(MOCK_STAMP).reply(200, {
+        reference: newDataRef3,
+      } as ReferenceResponse)
+      socPostMock(MOCK_STAMP, testIdentity.address, socIdentifier3).reply(200, {
+        reference: socReturnRef3,
+      } as ReferenceResponse)
+      await writeCommentToIndex(mockComments[1], {
         stamp: MOCK_STAMP,
-        identifier,
+        identifier: feedIdentifier,
         signer: testIdentity.privateKey,
         approvedFeedAddress: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
         startIx: endIx,
       })
+      fetchChunkMock(testChunkHash2).reply(200, testChunkData2)
+      downloadDataMock(newDataRef2).reply(200, JSON.stringify(mockComments[0]))
+      fetchChunkMock(testChunkHash3).reply(200, testChunkData3)
+      downloadDataMock(newDataRef3).reply(200, JSON.stringify(mockComments[1]))
       const comments = await readCommentsAsync({
-        identifier,
+        identifier: feedIdentifier,
         approvedFeedAddress: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
         startIx,
         endIx,
       })
 
-      expect(comments.map(({ username, message }) => ({ username, message }))).toStrictEqual([
-        expComments[0],
-        expComments[1],
-      ])
+      expect(comments.map(c => c)).toStrictEqual(mockComments)
+
+      assertAllIsDone()
     })
   })
 })
