@@ -2,6 +2,7 @@ import { DEFAULT_BEE_URL } from "../constants/constants"
 import { CommentNode, UserComment } from "../model/comment.model"
 import { Options } from "../model/options.model"
 
+import { IdentifierError, StampError } from "./errors"
 import { getUsableStamp } from "./stamps"
 import { Optional } from "./types"
 import { getAddressFromIdentifier, getIdentifierFromUrl, getPrivateKeyFromIdentifier } from "./url"
@@ -20,7 +21,7 @@ export async function prepareOptions(
   }
 
   if (!identifier) {
-    throw new Error("Cannot generate private key from an invalid URL")
+    throw new IdentifierError("Cannot generate private key from an invalid URL")
   }
 
   const privateKey = optionsPrivateKey || getPrivateKeyFromIdentifier(identifier)
@@ -29,7 +30,7 @@ export async function prepareOptions(
     const usableStamp = await getUsableStamp(beeApiUrl)
 
     if (!usableStamp) {
-      throw new Error("No available stamps found.")
+      throw new StampError("No available stamps found.")
     }
 
     stamp = usableStamp.batchID

@@ -10,7 +10,9 @@
     "test": "jest --config=jest.config.ts --runInBand --verbose",
     "clear_jest": "jest --clearCache",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "exports": {
     ".": {

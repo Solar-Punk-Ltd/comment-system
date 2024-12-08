@@ -11,6 +11,17 @@ import { DEFAULT_FEED_TYPE, FetchFeedUpdateResponse } from "./utils/types"
 import { getAddressFromIdentifier } from "./utils/url"
 import { commentListToTree } from "./utils"
 
+/**
+ * Write a comment to the next index of the feed with the given options.
+ *
+ * @param comment The comment object to write to the feed.
+ * @param options The options to use for writing the comment.
+ * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
+ * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
+ * @throws StampError if no valid stamp is found.
+ *
+ * @returns The comment object that was written to the feed.
+ */
 export async function writeComment(comment: UserComment, options?: Options): Promise<UserComment> {
   const { identifier, stamp, beeApiUrl, signer } = await prepareWriteOptions(options)
 
@@ -41,6 +52,18 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
   }
 }
 
+/**
+ * Write a comment to a specific index of the feed with the given options.
+ * Defaults to @writeComment if no index is provided.
+ *
+ * @param comment The comment object to write to the feed.
+ * @param options The options to use for writing the comment.
+ * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
+ * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
+ * @throws StampError if no valid stamp is found.
+ *
+ * @returns The comment object that was written to the feed.
+ */
 export async function writeCommentToIndex(comment: UserComment, options?: Options): Promise<UserComment> {
   const { identifier, stamp, beeApiUrl, signer, startIx } = await prepareWriteOptions(options)
   if (startIx === undefined) {
@@ -75,6 +98,16 @@ export async function writeCommentToIndex(comment: UserComment, options?: Option
   }
 }
 
+/**
+ * Read comments in succession until the latest index of the feed with the given options.
+ *
+ * @param options The options to use for reading the comment.
+ * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
+ * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
+ * @throws StampError if no valid stamp is found.
+ *
+ * @returns The the array of comment objects that were read from the feed.
+ */
 export async function readComments(options?: Options): Promise<UserComment[]> {
   const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress } = await prepareReadOptions(options)
 
@@ -106,13 +139,34 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
   return userComments
 }
 
+/**
+ * Read nested comments in succession until the latest index of the feed with the given options.
+ *
+ * @param options The options to use for reading the comment.
+ * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
+ * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
+ * @throws StampError if no valid stamp is found.
+ *
+ * @returns The the array of nested comment objects that were read from the feed.
+ */
 export async function readCommentsAsTree(options?: Options): Promise<CommentNode[]> {
   const userComments = await readComments(options)
 
   return commentListToTree(userComments)
 }
 
-export async function readCommentsAsync(options?: Options): Promise<UserComment[]> {
+/**
+ * Read comments in parallel within the provided range of indices of the feed with the given options.
+ * Defaults to @readComments if no start or end index is provided.
+ *
+ * @param options The options to use for reading the comment.
+ * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
+ * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
+ * @throws StampError if no valid stamp is found.
+ *
+ * @returns The the array of comment objects that were read from the feed.
+ */
+export async function readCommentsInRange(options?: Options): Promise<UserComment[]> {
   const {
     identifier,
     beeApiUrl,
@@ -170,6 +224,17 @@ export async function readCommentsAsync(options?: Options): Promise<UserComment[
   return userComments
 }
 
+/**
+ * Read a single comment at the provided index of the feed with the given options.
+ * Reads the latest comment if no index is provided, in which case the next index is also returned.
+ *
+ * @param options The options to use for reading the comment.
+ * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
+ * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
+ * @throws StampError if no valid stamp is found.
+ *
+ * @returns The the comment object that was read from the feed.
+ */
 export async function readSingleComment(options?: Options): Promise<SingleComment> {
   const {
     identifier,

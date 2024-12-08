@@ -1,6 +1,7 @@
 import { Utils } from "@ethersphere/bee-js"
 import { hexlify, Wallet } from "ethers"
 
+import { PrivateKeyError } from "./errors"
 import { Bytes } from "./types"
 
 /** Extracts path of a bzz link. For example:
@@ -17,7 +18,7 @@ export function getIdentifierFromUrl(url: string): string | undefined {
 
 export function getPrivateKeyFromIdentifier(identifier: string): Bytes<32> {
   if (!identifier) {
-    throw new Error("Cannot generate private key from an invalid identifier")
+    throw new PrivateKeyError("Cannot generate private key from an invalid identifier")
   }
 
   return Utils.keccak256Hash(identifier)

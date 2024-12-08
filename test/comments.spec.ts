@@ -3,7 +3,7 @@ import nock from "nock"
 
 import {
   readComments,
-  readCommentsAsync,
+  readCommentsInRange,
   readSingleComment,
   writeComment,
   writeCommentToIndex,
@@ -113,7 +113,7 @@ describe("Comments tests", () => {
       downloadDataMock(newDataRef2).reply(200, JSON.stringify(mockComments[0]))
       fetchChunkMock(testChunkHash3).reply(200, testChunkData3)
       downloadDataMock(newDataRef3).reply(200, JSON.stringify(mockComments[1]))
-      const comments = await readCommentsAsync({
+      const comments = await readCommentsInRange({
         identifier: feedIdentifier,
         approvedFeedAddress: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
