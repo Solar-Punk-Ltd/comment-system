@@ -1,39 +1,38 @@
 import { Bee, Data } from "@ethersphere/bee-js"
-import { ZeroHash } from "ethers"
 import { v4 as uuid } from "uuid"
 
 import { isUserComment } from "./asserts/models.assert"
-import { BEE_URL } from "./constants/constants"
+import { DEFAULT_BEE_URL } from "./constants/constants"
 import { Comment, CommentNode, SingleComment, UserComment } from "./model/comment.model"
 import { Options } from "./model/options.model"
+import { prepareReadOptions, prepareWriteOptions } from "./utils/comments"
 import { makeNumericIndex, numberToFeedIndex } from "./utils/feeds"
 import { DEFAULT_FEED_TYPE, FetchFeedUpdateResponse } from "./utils/types"
 import { getAddressFromIdentifier } from "./utils/url"
 import { commentListToTree } from "./utils"
 
 export async function writeComment(comment: UserComment, options?: Options): Promise<UserComment> {
+  const { identifier, stamp, beeApiUrl, signer } = await prepareWriteOptions(options)
+
+  const bee = new Bee(beeApiUrl)
+
+  const commentObject: Comment = {
+    ...comment.message,
+    messageId: comment.message.messageId || uuid(),
+  }
+
+  const userCommentObj: UserComment = {
+    message: commentObject,
+    timestamp: typeof comment.timestamp === "number" ? comment.timestamp : new Date().getTime(),
+    username: comment.username,
+  }
+
   try {
-    if (!options) return {} as UserComment
-    const { identifier, stamp, beeApiUrl, signer } = options
-    if (!stamp || !signer) return {} as UserComment
-    const bee = new Bee(beeApiUrl || BEE_URL)
-
-    const commentObject: Comment = {
-      ...comment.message,
-      messageId: comment.message.messageId || uuid(),
-    }
-
-    const userCommentObj: UserComment = {
-      message: commentObject,
-      timestamp: typeof comment.timestamp === "number" ? comment.timestamp : new Date().getTime(),
-      username: comment.username,
-    }
-
     const { reference } = await bee.uploadData(stamp, JSON.stringify(userCommentObj))
     console.log("Comment data upload successful: ", reference)
-    const feedWriter = bee.makeFeedWriter(DEFAULT_FEED_TYPE, identifier || ZeroHash, signer)
-    const r = await feedWriter.upload(stamp, reference)
-    console.log("Comment feed updated: ", r.reference)
+    const feedWriter = bee.makeFeedWriter(DEFAULT_FEED_TYPE, identifier, signer)
+    const feedResult = await feedWriter.upload(stamp, reference)
+    console.log("Comment feed updated: ", feedResult.reference)
 
     return userCommentObj
   } catch (error) {
@@ -42,32 +41,32 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
   }
 }
 
-export async function writeCommentToIndex(comment: UserComment, options: Options): Promise<UserComment> {
+export async function writeCommentToIndex(comment: UserComment, options?: Options): Promise<UserComment> {
+  const { identifier, stamp, beeApiUrl, signer, startIx } = await prepareWriteOptions(options)
+  if (startIx === undefined) {
+    console.log("No index defined - writing comment to the latest index")
+    return writeComment(comment, options)
+  }
+
+  const bee = new Bee(beeApiUrl)
+
+  const commentObject: Comment = {
+    ...comment.message,
+    messageId: comment.message.messageId || uuid(),
+  }
+
+  const userCommentObj: UserComment = {
+    message: commentObject,
+    timestamp: typeof comment.timestamp === "number" ? comment.timestamp : new Date().getTime(),
+    username: comment.username,
+  }
+
   try {
-    const { identifier, stamp, beeApiUrl, signer, startIx } = options
-    if (!stamp || !signer) return {} as UserComment
-    if (startIx === undefined) {
-      console.log("No index defined - writing comment to the latest index")
-      return writeComment(comment, options)
-    }
-    const bee = new Bee(beeApiUrl || BEE_URL)
-
-    const commentObject: Comment = {
-      ...comment.message,
-      messageId: comment.message.messageId || uuid(),
-    }
-
-    const userCommentObj: UserComment = {
-      message: commentObject,
-      timestamp: typeof comment.timestamp === "number" ? comment.timestamp : new Date().getTime(),
-      username: comment.username,
-    }
-
     const { reference } = await bee.uploadData(stamp, JSON.stringify(userCommentObj))
     console.log("Comment data upload successful: ", reference)
-    const feedWriter = bee.makeFeedWriter(DEFAULT_FEED_TYPE, identifier || ZeroHash, signer)
-    const r = await feedWriter.upload(stamp, reference, { index: numberToFeedIndex(startIx) })
-    console.log("Comment feed updated: ", r.reference)
+    const feedWriter = bee.makeFeedWriter(DEFAULT_FEED_TYPE, identifier, signer)
+    const feedResult = await feedWriter.upload(stamp, reference, { index: numberToFeedIndex(startIx) })
+    console.log("Comment feed updated: ", feedResult.reference)
 
     return userCommentObj
   } catch (error) {
@@ -77,18 +76,11 @@ export async function writeCommentToIndex(comment: UserComment, options: Options
 }
 
 export async function readComments(options?: Options): Promise<UserComment[]> {
-  if (!options) return []
-  const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress } = options
-  if (!identifier) {
-    console.error("No identifier")
-    return [] as UserComment[]
-  }
+  const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress } = await prepareReadOptions(options)
 
-  const bee = new Bee(beeApiUrl || BEE_URL)
+  const bee = new Bee(beeApiUrl)
 
-  const address = optionsAddress || getAddressFromIdentifier(identifier)
-
-  const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier || ZeroHash, address)
+  const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier, optionsAddress)
 
   const userComments: UserComment[] = []
 
@@ -120,21 +112,23 @@ export async function readCommentsAsTree(options?: Options): Promise<CommentNode
   return commentListToTree(userComments)
 }
 
-export async function readCommentsAsync(options: Options): Promise<UserComment[]> {
-  const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress, startIx, endIx } = options
+export async function readCommentsAsync(options?: Options): Promise<UserComment[]> {
+  const {
+    identifier,
+    beeApiUrl,
+    approvedFeedAddress: optionsAddress,
+    startIx,
+    endIx,
+  } = await prepareReadOptions(options)
   if (startIx === undefined || endIx === undefined) {
-    console.log("no start or end index - reading comments synchronously")
+    console.log("No start or end index - reading comments synchronously")
     return await readComments(options)
   }
 
-  if (!identifier) {
-    console.error("No identifier")
-    return [] as UserComment[]
-  }
+  const bee = new Bee(beeApiUrl)
 
-  const bee = new Bee(beeApiUrl || BEE_URL)
-  const address = optionsAddress || getAddressFromIdentifier(identifier)
-  const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier || ZeroHash, address)
+  const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier, optionsAddress)
+
   const userComments: UserComment[] = []
 
   try {
@@ -176,18 +170,20 @@ export async function readCommentsAsync(options: Options): Promise<UserComment[]
   return userComments
 }
 
-export async function readSingleComment(options: Options): Promise<SingleComment> {
-  const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress, startIx } = options
-  if (!identifier) {
-    console.error("No identifier")
-    return {} as SingleComment
-  }
+export async function readSingleComment(options?: Options): Promise<SingleComment> {
+  const {
+    identifier,
+    beeApiUrl,
+    approvedFeedAddress: optionsAddress,
+    startIx,
+  } = await prepareReadOptions(options)
 
-  const bee = new Bee(beeApiUrl || BEE_URL)
+  const bee = new Bee(beeApiUrl || DEFAULT_BEE_URL)
 
   const address = optionsAddress || getAddressFromIdentifier(identifier)
 
-  const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier || ZeroHash, address)
+  const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier, address)
+
   let userComment: UserComment
   let feedUpdate: FetchFeedUpdateResponse
   try {

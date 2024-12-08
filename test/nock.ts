@@ -1,7 +1,7 @@
 import { Reference } from "@ethersphere/bee-js"
 import nock from "nock"
 
-import { DEFAULT_FEED_TYPE, FeedType, HexEthAddress } from "../src/utils/types"
+import { DEFAULT_FEED_TYPE, FeedType } from "../src/utils/types"
 
 export const MOCK_SERVER_URL = "http://localhost:1633"
 
@@ -18,7 +18,7 @@ export function assertAllIsDone(): void {
 }
 
 export function fetchFeedUpdateMock(
-  address: HexEthAddress | string,
+  address: string,
   hashedTopic: string,
   type: FeedType = DEFAULT_FEED_TYPE,
 ): nock.Interceptor {
