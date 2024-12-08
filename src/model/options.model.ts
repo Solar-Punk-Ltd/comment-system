@@ -24,12 +24,4 @@ export interface Options {
    * approvedFeedAddress The address of the feed that contains approved comments, , defaults to getAddressFromIdentifier(identifier)
    */
   approvedFeedAddress?: string
-  /**
-   * startIx The start index to load comments in the feed
-   */
-  startIx?: number
-  /**
-   * endIx The end index to load comments in the feed
-   */
-  endIx?: number
 }

@@ -8,7 +8,7 @@ import { Options } from "./model/options.model"
 import { prepareReadOptions, prepareWriteOptions } from "./utils/comments"
 import { makeNumericIndex, numberToFeedIndex } from "./utils/feeds"
 import { DEFAULT_FEED_TYPE, FetchFeedUpdateResponse } from "./utils/types"
-import { getAddressFromIdentifier } from "./utils/url"
+import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url"
 import { commentListToTree } from "./utils"
 
 /**
@@ -23,7 +23,9 @@ import { commentListToTree } from "./utils"
  * @returns The comment object that was written to the feed.
  */
 export async function writeComment(comment: UserComment, options?: Options): Promise<UserComment> {
-  const { identifier, stamp, beeApiUrl, signer } = await prepareWriteOptions(options)
+  const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options)
+
+  const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier)
 
   const bee = new Bee(beeApiUrl)
 
@@ -57,6 +59,7 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
  * Defaults to @writeComment if no index is provided.
  *
  * @param comment The comment object to write to the feed.
+ * @param index The index to write the comment to.
  * @param options The options to use for writing the comment.
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
@@ -64,12 +67,17 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
  *
  * @returns The comment object that was written to the feed.
  */
-export async function writeCommentToIndex(comment: UserComment, options?: Options): Promise<UserComment> {
-  const { identifier, stamp, beeApiUrl, signer, startIx } = await prepareWriteOptions(options)
-  if (startIx === undefined) {
+export async function writeCommentToIndex(
+  comment: UserComment,
+  index?: number,
+  options?: Options,
+): Promise<UserComment> {
+  const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options)
+  if (index === undefined) {
     console.log("No index defined - writing comment to the latest index")
     return writeComment(comment, options)
   }
+  const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier)
 
   const bee = new Bee(beeApiUrl)
 
@@ -88,7 +96,7 @@ export async function writeCommentToIndex(comment: UserComment, options?: Option
     const { reference } = await bee.uploadData(stamp, JSON.stringify(userCommentObj))
     console.log("Comment data upload successful: ", reference)
     const feedWriter = bee.makeFeedWriter(DEFAULT_FEED_TYPE, identifier, signer)
-    const feedResult = await feedWriter.upload(stamp, reference, { index: numberToFeedIndex(startIx) })
+    const feedResult = await feedWriter.upload(stamp, reference, { index: numberToFeedIndex(index) })
     console.log("Comment feed updated: ", feedResult.reference)
 
     return userCommentObj
@@ -113,7 +121,9 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
 
   const bee = new Bee(beeApiUrl)
 
-  const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier, optionsAddress)
+  const address = optionsAddress || getAddressFromIdentifier(identifier)
+
+  const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier, address)
 
   const userComments: UserComment[] = []
 
@@ -159,6 +169,8 @@ export async function readCommentsAsTree(options?: Options): Promise<CommentNode
  * Read comments in parallel within the provided range of indices of the feed with the given options.
  * Defaults to @readComments if no start or end index is provided.
  *
+ * @param start The start index of the range.
+ * @param end The end index of the range.
  * @param options The options to use for reading the comment.
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
@@ -166,29 +178,29 @@ export async function readCommentsAsTree(options?: Options): Promise<CommentNode
  *
  * @returns The the array of comment objects that were read from the feed.
  */
-export async function readCommentsInRange(options?: Options): Promise<UserComment[]> {
-  const {
-    identifier,
-    beeApiUrl,
-    approvedFeedAddress: optionsAddress,
-    startIx,
-    endIx,
-  } = await prepareReadOptions(options)
-  if (startIx === undefined || endIx === undefined) {
+export async function readCommentsInRange(
+  start?: number,
+  end?: number,
+  options?: Options,
+): Promise<UserComment[]> {
+  const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress } = await prepareReadOptions(options)
+  if (start === undefined || end === undefined) {
     console.log("No start or end index - reading comments synchronously")
     return await readComments(options)
   }
 
   const bee = new Bee(beeApiUrl)
 
-  const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier, optionsAddress)
+  const address = optionsAddress || getAddressFromIdentifier(identifier)
+
+  const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier, address)
 
   const userComments: UserComment[] = []
 
   try {
-    const actualStartIx = endIx > startIx ? startIx : endIx
+    const actualStart = end > start ? start : end
     const feedUpdatePromises: Promise<FetchFeedUpdateResponse>[] = []
-    for (let i = actualStartIx; i <= endIx; i++) {
+    for (let i = actualStart; i <= end; i++) {
       feedUpdatePromises.push(feedReader.download({ index: numberToFeedIndex(i) }))
     }
     const dataPromises: Promise<Data>[] = []
@@ -215,7 +227,7 @@ export async function readCommentsInRange(options?: Options): Promise<UserCommen
       })
     })
   } catch (err) {
-    console.error(`Error while reading comments from ${startIx} to ${endIx}: ${err}`)
+    console.error(`Error while reading comments from ${start} to ${end}: ${err}`)
     return [] as UserComment[]
   }
 
@@ -228,6 +240,7 @@ export async function readCommentsInRange(options?: Options): Promise<UserCommen
  * Read a single comment at the provided index of the feed with the given options.
  * Reads the latest comment if no index is provided, in which case the next index is also returned.
  *
+ * @param index The index of the comment to read.
  * @param options The options to use for reading the comment.
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
@@ -235,13 +248,8 @@ export async function readCommentsInRange(options?: Options): Promise<UserCommen
  *
  * @returns The the comment object that was read from the feed.
  */
-export async function readSingleComment(options?: Options): Promise<SingleComment> {
-  const {
-    identifier,
-    beeApiUrl,
-    approvedFeedAddress: optionsAddress,
-    startIx,
-  } = await prepareReadOptions(options)
+export async function readSingleComment(index?: number, options?: Options): Promise<SingleComment> {
+  const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress } = await prepareReadOptions(options)
 
   const bee = new Bee(beeApiUrl || DEFAULT_BEE_URL)
 
@@ -252,7 +260,7 @@ export async function readSingleComment(options?: Options): Promise<SingleCommen
   let userComment: UserComment
   let feedUpdate: FetchFeedUpdateResponse
   try {
-    feedUpdate = await feedReader.download({ index: numberToFeedIndex(startIx) })
+    feedUpdate = await feedReader.download({ index: numberToFeedIndex(index) })
     const data = await bee.downloadData(feedUpdate.reference)
     const comment = data.json()
     if (isUserComment(comment)) {
@@ -266,12 +274,11 @@ export async function readSingleComment(options?: Options): Promise<SingleCommen
   }
 
   let nextIndex: number | undefined = undefined
-  if (startIx === undefined) {
+  if (index === undefined) {
     try {
       nextIndex = makeNumericIndex(feedUpdate.feedIndexNext)
     } catch (err) {
       console.log("Error while getting next index: ", err)
-      return {} as SingleComment
     }
   }
 

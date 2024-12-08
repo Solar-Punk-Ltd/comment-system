@@ -87,13 +87,12 @@ describe("Comments tests", () => {
       socPostMock(MOCK_STAMP, testIdentity.address, socIdentifier2).reply(200, {
         reference: socReturnRef2,
       } as ReferenceResponse)
-      await writeCommentToIndex(mockComments[0], {
+      await writeCommentToIndex(mockComments[0], startIx, {
         stamp: MOCK_STAMP,
         identifier: feedIdentifier,
         signer: testIdentity.privateKey,
         beeApiUrl: MOCK_SERVER_URL,
         approvedFeedAddress: testIdentity.address,
-        startIx,
       })
       uploadDataMock(MOCK_STAMP).reply(200, {
         reference: newDataRef3,
@@ -101,24 +100,21 @@ describe("Comments tests", () => {
       socPostMock(MOCK_STAMP, testIdentity.address, socIdentifier3).reply(200, {
         reference: socReturnRef3,
       } as ReferenceResponse)
-      await writeCommentToIndex(mockComments[1], {
+      await writeCommentToIndex(mockComments[1], endIx, {
         stamp: MOCK_STAMP,
         identifier: feedIdentifier,
         signer: testIdentity.privateKey,
         approvedFeedAddress: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
-        startIx: endIx,
       })
       fetchChunkMock(testChunkHash2).reply(200, testChunkData2)
       downloadDataMock(newDataRef2).reply(200, JSON.stringify(mockComments[0]))
       fetchChunkMock(testChunkHash3).reply(200, testChunkData3)
       downloadDataMock(newDataRef3).reply(200, JSON.stringify(mockComments[1]))
-      const comments = await readCommentsInRange({
+      const comments = await readCommentsInRange(startIx, endIx, {
         identifier: feedIdentifier,
         approvedFeedAddress: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
-        startIx,
-        endIx,
       })
 
       expect(comments.map(c => c)).toStrictEqual(mockComments)
@@ -141,21 +137,19 @@ describe("Comments tests", () => {
       socPostMock(MOCK_STAMP, testIdentity.address, socIdentifier0).reply(200, {
         reference: socReturnRef0,
       } as ReferenceResponse)
-      await writeCommentToIndex(mockComments[0], {
+      await writeCommentToIndex(mockComments[0], startIx, {
         stamp: MOCK_STAMP,
         identifier: feedIdentifier,
         signer: testIdentity.privateKey,
         beeApiUrl: MOCK_SERVER_URL,
         approvedFeedAddress: testIdentity.address,
-        startIx: startIx,
       })
       fetchChunkMock(testChunkHash0).reply(200, testChunkData1)
       downloadDataMock(newDataRef0).reply(200, JSON.stringify(mockComments[0]))
-      const comment = await readSingleComment({
+      const comment = await readSingleComment(startIx, {
         identifier: feedIdentifier,
         approvedFeedAddress: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
-        startIx: startIx,
       })
 
       expect([comment]).toStrictEqual([{ comment: mockComments[0], nextIndex: undefined }])

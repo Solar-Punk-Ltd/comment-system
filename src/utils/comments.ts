@@ -5,16 +5,15 @@ import { Options } from "../model/options.model"
 import { IdentifierError, StampError } from "./errors"
 import { getUsableStamp } from "./stamps"
 import { Optional } from "./types"
-import { getAddressFromIdentifier, getIdentifierFromUrl, getPrivateKeyFromIdentifier } from "./url"
+import { getIdentifierFromUrl } from "./url"
 
-export async function prepareOptions(
+async function prepareOptions(
   options: Options = {},
   stampRequired = true,
-): Promise<Optional<Required<Options>, "startIx" | "endIx">> {
+): Promise<Optional<Required<Options>, "stamp" | "signer" | "approvedFeedAddress">> {
   const beeApiUrl = options.beeApiUrl ?? DEFAULT_BEE_URL
-  const { signer: optionsPrivateKey, approvedFeedAddress: optionsAddress } = options
+  const { signer, approvedFeedAddress } = options
   let { identifier, stamp } = options
-  const { startIx, endIx } = options
 
   if (!identifier) {
     identifier = getIdentifierFromUrl(window.location.href)
@@ -23,8 +22,6 @@ export async function prepareOptions(
   if (!identifier) {
     throw new IdentifierError("Cannot generate private key from an invalid URL")
   }
-
-  const privateKey = optionsPrivateKey || getPrivateKeyFromIdentifier(identifier)
 
   if (!stamp && stampRequired) {
     const usableStamp = await getUsableStamp(beeApiUrl)
@@ -36,28 +33,22 @@ export async function prepareOptions(
     stamp = usableStamp.batchID
   }
 
-  const address = optionsAddress || getAddressFromIdentifier(identifier)
-
   return {
-    stamp: stamp || "",
+    stamp: stamp,
     identifier: identifier,
     beeApiUrl: beeApiUrl,
-    signer: privateKey,
-    approvedFeedAddress: address,
-    startIx: startIx,
-    endIx: endIx,
+    signer: signer,
+    approvedFeedAddress: approvedFeedAddress,
   }
 }
 
-export function prepareWriteOptions(
-  options: Options = {},
-): Promise<Omit<Optional<Required<Options>, "startIx">, "endIx">> {
-  return prepareOptions(options, true)
+export function prepareWriteOptions(options: Options = {}): Promise<Required<Options>> {
+  return prepareOptions(options) as Promise<Required<Options>>
 }
 
 export function prepareReadOptions(
   options: Options = {},
-): Promise<Omit<Optional<Required<Options>, "startIx" | "endIx">, "stamp" | "signer">> {
+): Promise<Omit<Optional<Required<Options>, "approvedFeedAddress">, "stamp" | "signer">> {
   return prepareOptions(options, false)
 }
 
