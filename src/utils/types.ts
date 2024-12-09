@@ -18,4 +18,3 @@ export interface FetchFeedUpdateResponse extends ReferenceResponse, FeedUpdateHe
 const feedTypes = ["sequence", "epoch"] as const;
 export type FeedType = (typeof feedTypes)[number];
 export const DEFAULT_FEED_TYPE: FeedType = "sequence";
-export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;

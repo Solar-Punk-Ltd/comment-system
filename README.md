@@ -21,26 +21,26 @@ import { writeComment, writeCommentToIndex } from "@solarpunkltd/comment-system"
 
 const comment = {
   message: {
-    text: 'This is a comment',
-    messageId: 'unique-message-id',
+    text: "This is a comment",
+    messageId: "unique-message-id",
   },
   timestamp: Date.now(),
-  username: 'user123',
+  username: "user123",
 };
 
 const options = {
-  stamp: 'your-stamp-id',
-  signer: 'your-private-key',
-  beeApiUrl: 'https://your-bee-node-url',
-  approvedFeedAddress: 'your-feed-address',
+  stamp: "your-stamp-id",
+  signer: "your-private-key",
+  beeApiUrl: "https://your-bee-node-url",
+  approvedFeedAddress: "your-feed-address",
 };
 
 writeComment(comment, options)
   .then(result => {
-    console.log('Comment written:', result);
+    console.log("Comment written:", result);
   })
   .catch(error => {
-    console.error('Error writing comment:', error);
+    console.error("Error writing comment:", error);
   });
 
 const index = 123;
@@ -61,20 +61,20 @@ Function writeCommentToIndex writes a comment to the desired specific index.
 To read comments from the Swarm network, use the readComments, readCommentsInRange or readSingleComment functions:
 
 ```javascript
-import { readComments, readCommentsInRange, readSingleComment } from 'swarm-comment-system';
+import { readComments, readCommentsInRange, readSingleComment } from "swarm-comment-system";
 
 const options = {
-  identifier: 'your-identifier',
-  beeApiUrl: 'https://your-bee-node-url',
-  approvedFeedAddress: 'your-feed-address',
+  identifier: "your-identifier",
+  beeApiUrl: "https://your-bee-node-url",
+  approvedFeedAddress: "your-feed-address",
 };
 
 readComments(options)
   .then(comments => {
-    console.log('Comments read:', comments);
+    console.log("Comments read:", comments);
   })
   .catch(error => {
-    console.error('Error reading comments:', error);
+    console.error("Error reading comments:", error);
   });
 
 const start = 0;

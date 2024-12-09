@@ -1,10 +1,10 @@
 import { DEFAULT_BEE_URL } from "../constants/constants";
 import { CommentNode, UserComment } from "../model/comment.model";
 import { Options } from "../model/options.model";
+import { Optional } from "../model/util.types";
 
 import { IdentifierError, StampError } from "./errors";
 import { getUsableStamp } from "./stamps";
-import { Optional } from "./types";
 import { getIdentifierFromUrl } from "./url";
 
 async function prepareOptions(
