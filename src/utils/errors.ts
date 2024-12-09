@@ -1,17 +1,17 @@
 export class PrivateKeyError extends Error {
   public constructor(message: string) {
-    super(message)
+    super(message);
   }
 }
 
 export class IdentifierError extends Error {
   public constructor(message: string) {
-    super(message)
+    super(message);
   }
 }
 
 export class StampError extends Error {
   public constructor(message: string) {
-    super(message)
+    super(message);
   }
 }

@@ -1,24 +1,30 @@
 {
   "include": ["src"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "dist"],
   "compilerOptions": {
-    "alwaysStrict": true,
-    "target": "ES2017",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "moduleResolution": "Node",
-    "module": "ES6",
-    "strict": true,
-    "noImplicitAny": true,
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
+    "module": "esnext",
     "resolveJsonModule": true,
-    "declaration": true, // Generate .d.ts files
-    "declarationDir": "./dist/types", // Emit .d.ts files to /dist/types
-    "outDir": "dist", // Emit JavaScript output to /dist
-    "skipLibCheck": true, // Skip checking .d.ts files in node_modules
-    "typeRoots": ["src/@types", "node_modules/@types"], // Custom types and node types
-    "types": ["jest"], // Include Jest types for testing
-    "noImplicitReturns": true, // Ensure all functions return a value
-    "noUnusedLocals": true, // Error on unused local variables
-    "noUnusedParameters": true // Error on unused parameters
+    "moduleResolution": "Node",
+    "types": ["node", "jest"],
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "declarationDir": "./dist/types",
+    "sourceMap": true,
+    "outDir": "dist",
+    "strict": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "strictPropertyInitialization": false,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "typeRoots": ["src/@types", "node_modules/@types"],
+    "noImplicitReturns": true
   }
 }

@@ -1,4 +1,4 @@
-import "jest"
+import "jest";
 
 export default {
   moduleFileExtensions: ["ts", "js", "json"],
@@ -12,4 +12,4 @@ export default {
   testTimeout: 60000,
   testPathIgnorePatterns: ["/node_modules/"],
   moduleDirectories: ["node_modules"],
-}
+};
