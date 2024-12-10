@@ -3,8 +3,8 @@ export {
   readCommentsAsTree,
   writeComment,
   writeCommentToIndex,
-  readCommentsAsync,
+  readCommentsInRange,
   readSingleComment,
-} from './comments'
-export * from './model'
-export * from './utils'
+} from "./comments";
+export * from "./model";
+export * from "./utils";

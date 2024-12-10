@@ -1,12 +1,31 @@
-import { Signer } from '@ethersphere/bee-js'
+import { BatchId, Signer } from "@ethersphere/bee-js";
 
+/**
+ * Options for configuring the comment system API.
+ */
 export interface Options {
-  stamp?: string // defaults to getUsableStamp()
-  identifier?: string // defaults to getIdentifierFromUrl(window.location.href)
-  signer?: Signer // signer object to which signs the feed updates
-  beeApiUrl?: string // defaults to http://localhost:1633
-  privateKey?: string // If set, private key won't be derived from identifier
-  approvedFeedAddress?: string // Address of feed that contains approved comments
-  startIx?: number // start index to load comments in the feed
-  endIx?: number // end index for loading comments in the feed
+  /**
+   * The stamp used to upload data.
+   * @default getUsableStamp()
+   */
+  stamp?: string | BatchId;
+  /**
+   * The identifier or hashed topic of the feed.
+   * @default getIdentifierFromUrl(window.location.href)
+   */
+  identifier?: string;
+  /**
+   * The signer's private key or a Signer instance that can sign data.
+   */
+  signer?: Signer | Uint8Array | string;
+  /**
+   * The URL of the Bee node.
+   * @default http://localhost:1633
+   */
+  beeApiUrl?: string;
+  /**
+   * The address of the feed that contains approved comments.
+   * @default getAddressFromIdentifier(identifier)
+   */
+  approvedFeedAddress?: string;
 }
