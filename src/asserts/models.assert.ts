@@ -1,8 +1,10 @@
-import { Comment } from '../model/comment.model'
-import { isString } from './general.assert'
+import { Comment, UserComment } from "../model/comment.model";
 
-export function isComment(obj: unknown): obj is Comment {
-  const { user, data } = (obj || {}) as Comment
+import { isString } from "./general.assert";
 
-  return Boolean(isString(user) && isString(data))
+export function isUserComment(obj: unknown): obj is UserComment {
+  const { username, message } = (obj || {}) as UserComment;
+  const { text } = (message || {}) as Comment;
+
+  return Boolean(isString(username) && isString(text));
 }
