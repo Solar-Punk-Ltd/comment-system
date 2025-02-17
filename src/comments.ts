@@ -254,11 +254,21 @@ export async function readSingleComment(index?: number, options?: Options): Prom
   const feedReader = bee.makeFeedReader(DEFAULT_FEED_TYPE, identifier, address);
 
   let userComment: UserComment;
-  let feedUpdate: FetchFeedUpdateResponse;
+  let feedUpdate: any;
+  let nextIndex: number | undefined = undefined;
+  let comment: any;
   try {
     feedUpdate = await feedReader.download({ index: numberToFeedIndex(index) });
-    const data = await bee.downloadData(feedUpdate.reference);
-    const comment = data.json();
+    if (index === undefined) {
+      const { feedIndex, feedIndexNext, ...unwrappedData } = feedUpdate;
+      const dataStr = JSON.stringify(unwrappedData);
+      comment = JSON.parse(dataStr);
+      nextIndex = makeNumericIndex(feedIndexNext);
+    } else {
+      const data = await bee.downloadData(feedUpdate.reference);
+      comment = data.json();
+    }
+
     if (isUserComment(comment)) {
       userComment = comment;
     } else {
@@ -267,15 +277,6 @@ export async function readSingleComment(index?: number, options?: Options): Prom
   } catch (error) {
     console.error("Error while reading single comment: ", error);
     return {} as SingleComment;
-  }
-
-  let nextIndex: number | undefined = undefined;
-  if (index === undefined) {
-    try {
-      nextIndex = makeNumericIndex(feedUpdate.feedIndexNext);
-    } catch (err) {
-      console.log("Error while getting next index: ", err);
-    }
   }
 
   return { comment: userComment, nextIndex: nextIndex };

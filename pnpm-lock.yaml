@@ -12,7 +12,7 @@ importers:
         specifier: ^8.3.1
         version: 8.3.1
       cafe-utility:
-        specifier: ^21.3.1
+        specifier: ^21.5.0
         version: 21.5.0
       ethers:
         specifier: ^6.13.3
