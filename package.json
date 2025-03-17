@@ -1,11 +1,11 @@
 {
   "name": "@solarpunkltd/comment-system",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "A library for writing and reading comments from the Swarm network.",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.json",
     "clean": "rm -rf ./dist",
     "test": "jest --config=jest.config.ts --runInBand --verbose",
     "clear_jest": "jest --clearCache",
@@ -32,21 +32,21 @@
     "comments",
     "forum"
   ],
-  "author": "",
+  "author": "solarpunkltd",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Solar-Punk-Ltd/comment-system/issues"
   },
   "homepage": "https://github.com/Solar-Punk-Ltd/comment-system#readme",
   "dependencies": {
-    "@ethersphere/bee-js": "^8.3.1",
-    "cafe-utility": "^21.5.0",
+    "@ethersphere/bee-js": "^9.0.3",
+    "cafe-utility": "^27.14.2",
     "ethers": "^6.13.3",
-    "nock": "^13.5.6",
     "uuid": "^9.0.1",
     "vite-plugin-node-polyfills": "^0.22.0"
   },
   "devDependencies": {
+    "nock": "^13.5.6",
     "@eslint/js": "^9.9.0",
     "@types/jest": "^29.5.13",
     "@types/node": "^20.8.10",

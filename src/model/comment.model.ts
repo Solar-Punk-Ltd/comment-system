@@ -21,10 +21,10 @@ export interface CommentNode {
 
 export interface SingleComment {
   comment: UserComment;
-  nextIndex?: number;
+  nextIndex?: string;
 }
 
 export interface CommentsWithIndex {
   comments: UserComment[];
-  nextIndex: number;
+  nextIndex: string;
 }
