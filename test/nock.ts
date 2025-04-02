@@ -1,8 +1,6 @@
 import { Reference } from "@ethersphere/bee-js";
 import nock from "nock";
 
-import { DEFAULT_FEED_TYPE, FeedType } from "../src/utils/types";
-
 export const MOCK_SERVER_URL = "http://localhost:1633";
 
 // Endpoints
@@ -17,17 +15,13 @@ export function assertAllIsDone(): void {
   }
 }
 
-export function fetchFeedUpdateMock(
-  address: string,
-  hashedTopic: string,
-  type: FeedType = DEFAULT_FEED_TYPE,
-): nock.Interceptor {
+export function fetchFeedUpdateMock(address: string, hashedTopic: string): nock.Interceptor {
   return nock(MOCK_SERVER_URL)
     .defaultReplyHeaders({
       "swarm-feed-index": "0",
       "swarm-feed-index-next": "1",
     })
-    .get(`${FEED_ENDPOINT}/${address}/${hashedTopic}?type=${type}`);
+    .get(`${FEED_ENDPOINT}/${address}/${hashedTopic}?type=sequence`);
 }
 
 export function downloadDataMock(reference: Reference | string): nock.Interceptor {
@@ -48,7 +42,7 @@ interface UploadOptions {
   errorDocument?: string;
 }
 
-function camelCaseToDashCase(str: string) {
+function camelCaseToDashCase(str: string): string {
   return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
 }
 

@@ -32,7 +32,7 @@ const options = {
   stamp: "your-stamp-id",
   signer: "your-private-key",
   beeApiUrl: "https://your-bee-node-url",
-  approvedFeedAddress: "your-feed-address",
+  address: "your-feed-address",
 };
 
 writeComment(comment, options)
@@ -43,7 +43,7 @@ writeComment(comment, options)
     console.error("Error writing comment:", error);
   });
 
-const index = 123;
+const index = FeedIndex.fromBigInt(123n);
 writeCommentToIndex(comment, index, options)
   .then(result => {
     console.log(`Comment written to index ${index}:`, result);
@@ -66,7 +66,7 @@ import { readComments, readCommentsInRange, readSingleComment } from "swarm-comm
 const options = {
   identifier: "your-identifier",
   beeApiUrl: "https://your-bee-node-url",
-  approvedFeedAddress: "your-feed-address",
+  address: "your-feed-address",
 };
 
 readComments(options)
@@ -77,9 +77,9 @@ readComments(options)
     console.error("Error reading comments:", error);
   });
 
-const start = 0;
-const end = 10;
-readCommentsInRange(start,end,options)
+const start = FeedIndex.fromBigInt(0n);
+const end = FeedIndex.fromBigInt(10n);
+readCommentsInRange(start, end, options)
   .then(comments => {
     console.log(`Comments read from range ${start} to ${end}:`, comments);
   })
@@ -87,7 +87,7 @@ readCommentsInRange(start,end,options)
     console.error(`Error reading comments from range ${start} to ${end}:`, error);
   });
 
-const index = 3;
+const index = FeedIndex.fromBigInt(3n);
 readSingleComment(index, options)
   .then(comments => {
     console.log(`Comment read at index ${index}:`, comments);
@@ -95,16 +95,16 @@ readSingleComment(index, options)
   .catch(error => {
     console.error(`Error reading comment at index ${index}:`, error);
   });
-
 ```
 
-Function readComments reads comments from index 0 until the latest found index, in succession.
-Function readCommentsInRange reads comments from the desired index range, parlelly.
-Function readSingleComment reads one single comment at the given index, if not provided it looks up and reads the latest comment.
+Function readComments reads comments from index 0 until the latest found index, in succession. Function
+readCommentsInRange reads comments from the desired index range, parlelly. Function readSingleComment reads one single
+comment at the given index, if not provided it looks up and reads the latest comment.
 
 ## Limitations
 
-Writing to a feed index that is already taken does not result in an error, therefore reading back the comment at the expected index is necessary as a verification of success.
+Writing to a feed index that is already taken does not result in an error, therefore reading back the comment at the
+expected index is necessary as a verification of success.
 
 ## Example react-app
 
@@ -112,4 +112,6 @@ See https://github.com/Solar-Punk-Ltd/comment-system-ui
 
 ## License
 
-This README provides an overview of the swarm comment-system library, including installation instructions, usage examples, and descriptions of the main functions and types. Adjust the content as needed to fit your specific library details.
+This README provides an overview of the swarm comment-system library, including installation instructions, usage
+examples, and descriptions of the main functions and types. Adjust the content as needed to fit your specific library
+details.

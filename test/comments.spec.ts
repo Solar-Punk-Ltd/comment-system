@@ -1,4 +1,4 @@
-import { ReferenceResponse } from "@ethersphere/bee-js";
+import { FeedIndex, PrivateKey, Reference } from "@ethersphere/bee-js";
 import nock from "nock";
 
 import { readComments, readCommentsInRange, readSingleComment, writeComment, writeCommentToIndex } from "../src/index";
@@ -35,17 +35,17 @@ describe("Comments tests", () => {
 
       fetchFeedUpdateMock(testIdentity.address, feedIdentifier).reply(404);
       uploadDataMock(MOCK_STAMP).reply(200, {
-        reference: dataRef,
-      } as ReferenceResponse);
+        reference: new Reference(dataRef).toString(),
+      });
       socPostMock(MOCK_STAMP, testIdentity.address, socIdentifier).reply(200, {
-        reference: socReturnRef,
-      } as ReferenceResponse);
+        reference: new Reference(socReturnRef).toString(),
+      });
       await writeComment(mockComments[0], {
         stamp: MOCK_STAMP,
         identifier: feedIdentifier,
-        signer: testIdentity.privateKey,
+        signer: new PrivateKey(testIdentity.privateKey),
         beeApiUrl: MOCK_SERVER_URL,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
       });
       fetchChunkMock(testChunkHash).reply(200, testChunkData1);
       downloadDataMock(dataRef).reply(200, JSON.stringify(mockComments[0]));
@@ -53,9 +53,8 @@ describe("Comments tests", () => {
       const comments = await readComments({
         identifier: feedIdentifier,
         beeApiUrl: MOCK_SERVER_URL,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
       });
-      console.log("object", comments);
       expect(comments.map(c => c)).toStrictEqual([mockComments[0]]);
     });
 
@@ -64,8 +63,8 @@ describe("Comments tests", () => {
 
   describe("Write to index and parallel read", () => {
     it("should write to specific indices and read them back async", async () => {
-      const startIx = 2;
-      const endIx = 3;
+      const startIx = FeedIndex.fromBigInt(2n);
+      const endIx = FeedIndex.fromBigInt(3n);
       const socIdentifier2 = "06fe94021fb32dc7415b488b8f59026bae4cfe3145471bd9318573d99b12c5e1";
       const socIdentifier3 = "687eb0ac11047efa8e8756f40799d053fef8c9e6f277cb7edeac28a09031f7ff";
       const newDataRef2 = "0f23cb00d87a43272deb2bacf1672dd6212c0dc6a1b3f2e93618c600f46a27d8";
@@ -76,29 +75,29 @@ describe("Comments tests", () => {
       const testChunkHash3 = "597270e86d1e21dafeef49239ca6d3c388b5636de1d3639214a70a5ad12d312f";
 
       uploadDataMock(MOCK_STAMP).reply(200, {
-        reference: newDataRef2,
-      } as ReferenceResponse);
+        reference: new Reference(newDataRef2).toString(),
+      });
       socPostMock(MOCK_STAMP, testIdentity.address, socIdentifier2).reply(200, {
-        reference: socReturnRef2,
-      } as ReferenceResponse);
+        reference: new Reference(socReturnRef2).toString(),
+      });
       await writeCommentToIndex(mockComments[0], startIx, {
         stamp: MOCK_STAMP,
         identifier: feedIdentifier,
-        signer: testIdentity.privateKey,
+        signer: new PrivateKey(testIdentity.privateKey),
         beeApiUrl: MOCK_SERVER_URL,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
       });
       uploadDataMock(MOCK_STAMP).reply(200, {
-        reference: newDataRef3,
-      } as ReferenceResponse);
+        reference: new Reference(newDataRef3).toString(),
+      });
       socPostMock(MOCK_STAMP, testIdentity.address, socIdentifier3).reply(200, {
-        reference: socReturnRef3,
-      } as ReferenceResponse);
+        reference: new Reference(socReturnRef3).toString(),
+      });
       await writeCommentToIndex(mockComments[1], endIx, {
         stamp: MOCK_STAMP,
         identifier: feedIdentifier,
-        signer: testIdentity.privateKey,
-        approvedFeedAddress: testIdentity.address,
+        signer: new PrivateKey(testIdentity.privateKey),
+        address: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
       });
       fetchChunkMock(testChunkHash2).reply(200, testChunkData2);
@@ -107,7 +106,7 @@ describe("Comments tests", () => {
       downloadDataMock(newDataRef3).reply(200, JSON.stringify(mockComments[1]));
       const comments = await readCommentsInRange(startIx, endIx, {
         identifier: feedIdentifier,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
       });
 
@@ -119,30 +118,30 @@ describe("Comments tests", () => {
 
   describe("Write to and index and read that single comment", () => {
     it("should write and read a single comment with lookup", async () => {
-      const startIx = 0;
+      const startIx = FeedIndex.fromBigInt(0n);
       const socIdentifier0 = "da83f60c89eff2931d88a3293799119ca5fcc65ce3b0b4767ea9b8010e9a6e28";
       const newDataRef0 = "85a759ecacc531cceb36a85e03c22bb6ddfea0f953c140070e41e3a47a1b8015";
       const socReturnRef0 = "eb8da3795ea4f47b17d1b2740ace7ea0f97b85a8d1beb20e7902f48e79076bbc";
       const testChunkHash0 = "eb8da3795ea4f47b17d1b2740ace7ea0f97b85a8d1beb20e7902f48e79076bbc";
 
       uploadDataMock(MOCK_STAMP).reply(200, {
-        reference: newDataRef0,
-      } as ReferenceResponse);
+        reference: new Reference(newDataRef0).toString(),
+      });
       socPostMock(MOCK_STAMP, testIdentity.address, socIdentifier0).reply(200, {
-        reference: socReturnRef0,
-      } as ReferenceResponse);
+        reference: new Reference(socReturnRef0).toString(),
+      });
       await writeCommentToIndex(mockComments[0], startIx, {
         stamp: MOCK_STAMP,
         identifier: feedIdentifier,
-        signer: testIdentity.privateKey,
+        signer: new PrivateKey(testIdentity.privateKey),
         beeApiUrl: MOCK_SERVER_URL,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
       });
       fetchChunkMock(testChunkHash0).reply(200, testChunkData1);
       downloadDataMock(newDataRef0).reply(200, JSON.stringify(mockComments[0]));
       const comment = await readSingleComment(startIx, {
         identifier: feedIdentifier,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
       });
 
