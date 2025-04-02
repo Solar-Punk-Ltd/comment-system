@@ -10,6 +10,3 @@ export interface FeedPayloadResult extends FeedUpdateHeaders {
 export interface FeedReferenceResult extends FeedUpdateHeaders {
   reference: Reference;
 }
-const feedTypes = ["sequence", "epoch"] as const;
-export type FeedType = (typeof feedTypes)[number];
-export const DEFAULT_FEED_TYPE: FeedType = "sequence";

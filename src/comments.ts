@@ -48,7 +48,7 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
 
     return userCommentObj;
   } catch (error) {
-    console.error("Error while writing comment: ", error);
+    console.debug("Error while writing comment: ", error);
     return {} as UserComment;
   }
 }
@@ -101,7 +101,7 @@ export async function writeCommentToIndex(
 
     return userCommentObj;
   } catch (error) {
-    console.error("Error while writing comment: ", error);
+    console.debug("Error while writing comment: ", error);
     return {} as UserComment;
   }
 }
@@ -129,7 +129,6 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
 
   let nextIndex = 0n;
 
-  // eslint-disable-next-line
   while (true) {
     try {
       const feedUpdate = await feedReader.downloadReference({ index: FeedIndex.fromBigInt(nextIndex++) });
@@ -141,7 +140,7 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
       if (isUserComment(comment)) {
         userComments.push(comment);
       }
-    } catch (error) {
+    } catch (_) {
       break;
     }
   }
@@ -226,7 +225,7 @@ export async function readCommentsInRange(
       });
     });
   } catch (err) {
-    console.error(`Error while reading comments from ${start} to ${end}: ${err}`);
+    console.debug(`Error while reading comments from ${start} to ${end}: ${err}`);
     return [] as UserComment[];
   }
 
@@ -276,7 +275,7 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
       throw new Error(`Invalid comment format: ${JSON.stringify(comment)}`);
     }
   } catch (error) {
-    console.error("Error while reading single comment: ", error);
+    console.debug("Error while reading single comment: ", error);
     return undefined;
   }
 
