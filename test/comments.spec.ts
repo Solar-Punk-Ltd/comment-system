@@ -45,7 +45,7 @@ describe("Comments tests", () => {
         identifier: feedIdentifier,
         signer: new PrivateKey(testIdentity.privateKey),
         beeApiUrl: MOCK_SERVER_URL,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
       });
       fetchChunkMock(testChunkHash).reply(200, testChunkData1);
       downloadDataMock(dataRef).reply(200, JSON.stringify(mockComments[0]));
@@ -53,7 +53,7 @@ describe("Comments tests", () => {
       const comments = await readComments({
         identifier: feedIdentifier,
         beeApiUrl: MOCK_SERVER_URL,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
       });
       expect(comments.map(c => c)).toStrictEqual([mockComments[0]]);
     });
@@ -85,7 +85,7 @@ describe("Comments tests", () => {
         identifier: feedIdentifier,
         signer: new PrivateKey(testIdentity.privateKey),
         beeApiUrl: MOCK_SERVER_URL,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
       });
       uploadDataMock(MOCK_STAMP).reply(200, {
         reference: new Reference(newDataRef3).toString(),
@@ -97,7 +97,7 @@ describe("Comments tests", () => {
         stamp: MOCK_STAMP,
         identifier: feedIdentifier,
         signer: new PrivateKey(testIdentity.privateKey),
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
       });
       fetchChunkMock(testChunkHash2).reply(200, testChunkData2);
@@ -106,7 +106,7 @@ describe("Comments tests", () => {
       downloadDataMock(newDataRef3).reply(200, JSON.stringify(mockComments[1]));
       const comments = await readCommentsInRange(startIx, endIx, {
         identifier: feedIdentifier,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
       });
 
@@ -135,13 +135,13 @@ describe("Comments tests", () => {
         identifier: feedIdentifier,
         signer: new PrivateKey(testIdentity.privateKey),
         beeApiUrl: MOCK_SERVER_URL,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
       });
       fetchChunkMock(testChunkHash0).reply(200, testChunkData1);
       downloadDataMock(newDataRef0).reply(200, JSON.stringify(mockComments[0]));
       const comment = await readSingleComment(startIx, {
         identifier: feedIdentifier,
-        approvedFeedAddress: testIdentity.address,
+        address: testIdentity.address,
         beeApiUrl: MOCK_SERVER_URL,
       });
 

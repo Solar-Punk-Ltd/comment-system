@@ -2,7 +2,7 @@
   "name": "@solarpunkltd/comment-system",
   "version": "1.6.0",
   "description": "A library for writing and reading comments from the Swarm network.",
-  "main": "dist/index.js",
+  "main": "dist/index.umd.js",
   "module": "dist/index.es.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
@@ -18,9 +18,9 @@
   },
   "exports": {
     ".": {
-      "default": "./dist/index.cjs",
+      "default": "./dist/index.umd.js",
       "types": "./dist/types/index.d.ts",
-      "require": "./dist/index.cjs",
+      "require": "./dist/index.umd.js",
       "import": "./dist/index.es.js"
     },
     "./package.json": "./package.json"

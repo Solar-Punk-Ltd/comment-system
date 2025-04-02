@@ -10,9 +10,9 @@ import { getIdentifierFromUrl } from "./url";
 async function prepareOptions(
   options: Options = {},
   stampRequired = true,
-): Promise<Optional<Required<Options>, "stamp" | "signer" | "approvedFeedAddress">> {
+): Promise<Optional<Required<Options>, "stamp" | "signer" | "address">> {
   const beeApiUrl = options.beeApiUrl ?? DEFAULT_BEE_URL;
-  const { signer, approvedFeedAddress } = options;
+  const { signer, address } = options;
   let { identifier, stamp } = options;
 
   if (!identifier) {
@@ -38,17 +38,17 @@ async function prepareOptions(
     identifier,
     beeApiUrl,
     signer,
-    approvedFeedAddress,
+    address,
   };
 }
 
-export function prepareWriteOptions(options: Options = {}): Promise<Required<Options>> {
-  return prepareOptions(options) as Promise<Required<Options>>;
+export function prepareWriteOptions(options: Options = {}): Promise<Optional<Required<Options>, "signer">> {
+  return prepareOptions(options) as Promise<Optional<Required<Options>, "signer">>;
 }
 
 export function prepareReadOptions(
   options: Options = {},
-): Promise<Omit<Optional<Required<Options>, "approvedFeedAddress">, "stamp" | "signer">> {
+): Promise<Omit<Optional<Required<Options>, "address">, "stamp" | "signer">> {
   return prepareOptions(options, false);
 }
 

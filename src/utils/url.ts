@@ -9,10 +9,22 @@ import { PrivateKeyError } from "./errors";
 */
 const bzzPathRegex = /https?:\/\/.+\/bzz\/(.+)/;
 
-export function getIdentifierFromUrl(url: string): string | undefined {
+export function getIdentifierFromBzzUrl(url: string): string | undefined {
   const result = bzzPathRegex.exec(url);
 
   return result && result[1] ? result[1] : undefined;
+}
+
+// creates a unique identifier from either a bzz or a random url by simply hashing it
+export function getIdentifierFromUrl(url: string): string {
+  const result = getIdentifierFromBzzUrl(url);
+  if (result) {
+    return result;
+  }
+
+  const idBytes = Binary.keccak256(Bytes.fromUtf8(url).toUint8Array());
+
+  return new Bytes(idBytes).toString();
 }
 
 export function getPrivateKeyFromIdentifier(identifier: string): PrivateKey {

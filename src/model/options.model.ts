@@ -24,8 +24,8 @@ export interface Options {
    */
   beeApiUrl?: string;
   /**
-   * The address of the feed that contains approved comments.
+   * The address of the feed that contains comments.
    * @default getAddressFromIdentifier(identifier)
    */
-  approvedFeedAddress?: string;
+  address?: string;
 }

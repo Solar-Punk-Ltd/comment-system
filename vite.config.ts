@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       lib: {
         entry: resolve(__dirname, "src/index.ts"),
         name: "swarm-comment-system",
-        formats: ["es", "cjs", "umd"],
+        formats: ["es", "umd"],
         fileName: format => `index.${format}.js`,
       },
       sourcemap: isProd,
@@ -31,7 +31,6 @@ export default defineConfig(({ mode }) => {
       dts({
         exclude: "**/test/**",
         outDir: "dist/types",
-        // entryRoot: "src",
       }),
     ],
     extensions: [".ts", ".js"],
