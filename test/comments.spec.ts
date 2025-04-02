@@ -55,7 +55,6 @@ describe("Comments tests", () => {
         beeApiUrl: MOCK_SERVER_URL,
         approvedFeedAddress: testIdentity.address,
       });
-      console.log("object", comments);
       expect(comments.map(c => c)).toStrictEqual([mockComments[0]]);
     });
 

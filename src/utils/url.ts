@@ -1,6 +1,5 @@
-import { Bytes } from "@ethersphere/bee-js";
+import { Bytes, EthAddress, PrivateKey } from "@ethersphere/bee-js";
 import { Binary } from "cafe-utility";
-import { hexlify, Wallet } from "ethers";
 
 import { PrivateKeyError } from "./errors";
 
@@ -16,30 +15,33 @@ export function getIdentifierFromUrl(url: string): string | undefined {
   return result && result[1] ? result[1] : undefined;
 }
 
-export function getPrivateKeyFromIdentifier(identifier: string): Bytes {
+export function getPrivateKeyFromIdentifier(identifier: string): PrivateKey {
   if (!identifier) {
     throw new PrivateKeyError("Cannot generate private key from an invalid identifier");
   }
 
   const idBytes = Bytes.fromUtf8(identifier).toUint8Array();
 
-  return new Bytes(Binary.keccak256(idBytes));
+  return new PrivateKey(Binary.keccak256(idBytes));
 }
 
-export function getPrivateKeyFromUrl(url: string): Bytes {
+export function getPrivateKeyFromUrl(url: string): PrivateKey {
   const identifier = getIdentifierFromUrl(url);
+  if (!identifier) {
+    throw new PrivateKeyError("Cannot generate private key from an invalid url");
+  }
 
-  return getPrivateKeyFromIdentifier(identifier as string);
+  return getPrivateKeyFromIdentifier(identifier);
 }
 
-export function getAddressFromIdentifier(identifier: string): string {
+export function getAddressFromIdentifier(identifier: string): EthAddress {
   const privateKey = getPrivateKeyFromIdentifier(identifier);
 
-  return new Wallet(hexlify(privateKey.toString())).address;
+  return privateKey.publicKey().address();
 }
 
-export function getAddressFromUrl(url: string): string {
+export function getAddressFromUrl(url: string): EthAddress {
   const privateKey = getPrivateKeyFromUrl(url);
 
-  return new Wallet(hexlify(privateKey.toString())).address;
+  return privateKey.publicKey().address();
 }

@@ -34,11 +34,11 @@ async function prepareOptions(
   }
 
   return {
-    stamp: stamp,
-    identifier: identifier,
-    beeApiUrl: beeApiUrl,
-    signer: signer,
-    approvedFeedAddress: approvedFeedAddress,
+    stamp,
+    identifier,
+    beeApiUrl,
+    signer,
+    approvedFeedAddress,
   };
 }
 

@@ -42,7 +42,7 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
   try {
     const { reference } = await bee.uploadData(stamp, JSON.stringify(userCommentObj));
     console.debug("Comment data upload successful: ", reference);
-    const feedWriter = bee.makeFeedWriter(identifier, signer);
+    const feedWriter = bee.makeFeedWriter(new Bytes(identifier).toUint8Array(), signer.toUint8Array());
     const feedResult = await feedWriter.upload(stamp, reference);
     console.debug("Comment feed updated: ", feedResult.reference);
 
@@ -71,18 +71,18 @@ export async function writeCommentToIndex(
   index?: FeedIndex,
   options?: Options,
 ): Promise<UserComment> {
-  const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
+  // TODO: what about getPrivateKeyFromIdentifier optionsSigner ?
+  const { identifier, stamp, beeApiUrl, signer } = await prepareWriteOptions(options);
   if (index === undefined) {
     console.debug("No index defined - writing comment to the latest index");
     return writeComment(comment, options);
   }
-  const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier);
 
   const bee = new Bee(beeApiUrl);
 
   const commentObject: Comment = {
     ...comment.message,
-    messageId: comment.message.messageId || uuid(),
+    messageId: comment.message.messageId || uuid().toString(),
   };
 
   const userCommentObj: UserComment = {
@@ -90,13 +90,13 @@ export async function writeCommentToIndex(
     timestamp: typeof comment.timestamp === "number" ? comment.timestamp : new Date().getTime(),
     username: comment.username,
   };
-
   try {
     const { reference } = await bee.uploadData(stamp, JSON.stringify(userCommentObj));
-    console.debug("Comment data upload successful: ", reference);
-    const feedWriter = bee.makeFeedWriter(identifier, signer);
-    const feedResult = await feedWriter.upload(stamp, reference, { index: index });
-    console.debug("Comment feed updated: ", feedResult.reference);
+    console.log("Comment data upload successful: ", reference);
+    const feedWriter = bee.makeFeedWriter(new Bytes(identifier).toUint8Array(), signer.toUint8Array());
+
+    const feedResult = await feedWriter.uploadReference(stamp, reference, { index });
+    console.log("Comment feed updated: ", feedResult.reference);
 
     return userCommentObj;
   } catch (error) {
@@ -122,11 +122,11 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
 
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const feedReader = bee.makeFeedReader(identifier, address);
+  const feedReader = bee.makeFeedReader(new Bytes(identifier).toUint8Array(), address);
 
   const userComments: UserComment[] = [];
 
-  let nextIndex: bigint = 0n;
+  let nextIndex = 0n;
 
   // eslint-disable-next-line
   while (true) {
@@ -189,10 +189,9 @@ export async function readCommentsInRange(
   }
 
   const bee = new Bee(beeApiUrl);
-
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const feedReader = bee.makeFeedReader(identifier, address);
+  const feedReader = bee.makeFeedReader(new Bytes(identifier).toUint8Array(), address);
 
   const userComments: UserComment[] = [];
 
@@ -251,10 +250,9 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
   const { identifier, beeApiUrl, approvedFeedAddress: optionsAddress } = await prepareReadOptions(options);
 
   const bee = new Bee(beeApiUrl || DEFAULT_BEE_URL);
-
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const feedReader = bee.makeFeedReader(identifier, address);
+  const feedReader = bee.makeFeedReader(new Bytes(identifier).toUint8Array(), address);
 
   let userComment: UserComment;
   let nextIndex: string | undefined = undefined;
@@ -262,12 +260,11 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
   try {
     if (index === undefined) {
       const feedUpdate = await feedReader.download();
-      const { feedIndexNext, ...unwrappedData } = feedUpdate;
-      const dataStr = JSON.stringify(unwrappedData);
-      comment = JSON.parse(dataStr);
+      const { feedIndexNext, payload } = feedUpdate;
+      comment = payload.toJSON();
       nextIndex = feedIndexNext?.toString();
     } else {
-      const feedUpdate = await feedReader.download({ index: index });
+      const feedUpdate = await feedReader.download({ index });
       const data = await bee.downloadData(feedUpdate.payload.toUint8Array());
       comment = data.toJSON();
     }
