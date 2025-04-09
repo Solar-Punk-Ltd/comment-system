@@ -17,3 +17,13 @@ interface User {
   username: string;
   address?: string;
 }
+
+export interface SingleReaction {
+  reaction: Reaction;
+  nextIndex?: string;
+}
+
+export interface ReactionsWithIndex {
+  reactions: Reaction[];
+  nextIndex: string;
+}

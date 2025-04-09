@@ -1,13 +1,12 @@
 import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
 import { v4 as uuid } from "uuid";
 
-import { isReaction } from "./asserts/models.assert";
 import { isNumber } from "./asserts/general.assert";
-import { Reaction } from "./model/reaction.model";
+import { isReactionArray } from "./asserts/models.assert";
 import { Options } from "./model/options.model";
-import { prepareReadOptions, prepareWriteOptions } from "./utils/comments";
+import { Reaction, ReactionsWithIndex } from "./model/reaction.model";
+import { prepareReadOptions, prepareWriteOptions } from "./utils/common";
 import { getReactionFeedId } from "./utils/reactions";
-import { FeedReferenceResult } from "./utils/types";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
 
 export async function writeReaction(reaction: Reaction, options?: Options): Promise<Reaction> {
@@ -21,7 +20,7 @@ export async function writeReactionToIndex(
 ): Promise<Reaction> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
   if (index === undefined) {
-    console.debug("No index defined - writing comment to the latest index");
+    console.debug("No index defined - writing reaction to the latest index");
     return writeReaction(reaction, options);
   }
 
@@ -56,56 +55,42 @@ export async function readReactions(options?: Options): Promise<Reaction[]> {
 
 // TODO: generic feed reader/writer func for both comments and reactions
 // TODO: reaction aggregate functions
-export async function readReactionsInRange(start?: FeedIndex, end?: FeedIndex, options?: Options): Promise<Reaction[]> {
+export async function readReactionsWithIndex(
+  index?: FeedIndex,
+  options?: Options,
+): Promise<ReactionsWithIndex | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
-  if (start === undefined || end === undefined) {
-    console.debug("No start or end index - reading comments synchronously");
-    return await readReactions(options);
-  }
 
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
-  const reactionFeedId = getReactionFeedId(identifier);
 
-  const feedReader = bee.makeFeedReader(new Bytes(reactionFeedId).toUint8Array(), address);
+  const feedReader = bee.makeFeedReader(new Bytes(identifier).toUint8Array(), address);
 
-  const reactions: Reaction[] = [];
-
+  let reactions: Reaction[] = [];
+  let nextIndex: string;
+  let reactionData: any;
   try {
-    const actualStart = end > start ? start.toBigInt() : end.toBigInt();
-    const feedUpdatePromises: Promise<FeedReferenceResult>[] = [];
-    for (let i = actualStart; i <= end.toBigInt(); i++) {
-      feedUpdatePromises.push(feedReader.downloadReference({ index: FeedIndex.fromBigInt(i) }));
+    if (index === undefined) {
+      const feedUpdate = await feedReader.download();
+      const { feedIndexNext, payload } = feedUpdate;
+      reactionData = payload.toJSON();
+      nextIndex = feedIndexNext?.toString() || FeedIndex.fromBigInt(0n).toString();
+    } else {
+      const feedUpdate = await feedReader.downloadReference({ index });
+      nextIndex = FeedIndex.fromBigInt(index.toBigInt() + 1n).toString();
+      const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
+      reactionData = data.toJSON();
     }
-    const dataPromises: Promise<Bytes>[] = [];
-    await Promise.allSettled(feedUpdatePromises).then(results => {
-      results.forEach(result => {
-        if (result.status === "fulfilled") {
-          dataPromises.push(bee.downloadData(result.value.reference.toUint8Array()));
-        } else {
-          console.debug("Failed fetching feed update: ", result.reason);
-        }
-      });
-    });
 
-    await Promise.allSettled(dataPromises).then(results => {
-      results.forEach(result => {
-        if (result.status === "fulfilled") {
-          const reaction = (result.value as Bytes).toJSON();
-          if (isReaction(reaction)) {
-            reactions.push(reaction);
-          }
-        } else {
-          console.debug("Failed fetching reaction data: ", result.reason);
-        }
-      });
-    });
-  } catch (err) {
-    console.debug(`Error while reading reactions from ${start} to ${end}: ${err}`);
-    return [] as Reaction[];
+    if (isReactionArray(reactionData)) {
+      reactions = reactionData;
+    } else {
+      throw new Error(`Invalid reactions format: ${JSON.stringify(reactionData)}`);
+    }
+  } catch (error) {
+    console.debug("Error while reading reactions: ", error);
+    return;
   }
 
-  reactions.sort((a, b) => a.timestamp - b.timestamp);
-
-  return reactions;
+  return { reactions: reactions, nextIndex: nextIndex };
 }

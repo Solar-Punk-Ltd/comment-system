@@ -1,5 +1,5 @@
-import { Comment, UserComment, User } from "../model/comment.model";
-import { Reaction, Action } from "../model/reaction.model";
+import { Comment, User, UserComment } from "../model/comment.model";
+import { Action, Reaction } from "../model/reaction.model";
 
 import { isBoolean, isNumber, isStrictlyObject, isString } from "./general.assert";
 
@@ -43,4 +43,8 @@ export function isReaction(obj: unknown): obj is Reaction {
       isValidReactionId &&
       isValidAction,
   );
+}
+
+export function isReactionArray(obj: unknown): obj is Reaction[] {
+  return Boolean(Array.isArray(obj) && obj.every(r => isReaction(r)));
 }

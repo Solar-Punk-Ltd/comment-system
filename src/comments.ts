@@ -1,14 +1,14 @@
 import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
 import { v4 as uuid } from "uuid";
 
+import { isNumber } from "./asserts/general.assert";
 import { isUserComment } from "./asserts/models.assert";
 import { Comment, CommentNode, SingleComment, UserComment } from "./model/comment.model";
 import { Options } from "./model/options.model";
-import { prepareReadOptions, prepareWriteOptions } from "./utils/comments";
+import { prepareReadOptions, prepareWriteOptions } from "./utils/common";
 import { FeedReferenceResult } from "./utils/types";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
 import { commentListToTree } from "./utils";
-import { isNumber } from "./asserts/general.assert";
 
 /**
  * Write a comment to the next index of the feed with the given options.
@@ -257,23 +257,23 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
 
   let userComment: UserComment;
   let nextIndex: string | undefined = undefined;
-  let comment: any;
+  let commentData: any;
   try {
     if (index === undefined) {
       const feedUpdate = await feedReader.download();
       const { feedIndexNext, payload } = feedUpdate;
-      comment = payload.toJSON();
+      commentData = payload.toJSON();
       nextIndex = feedIndexNext?.toString();
     } else {
       const feedUpdate = await feedReader.downloadReference({ index });
       const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
-      comment = data.toJSON();
+      commentData = data.toJSON();
     }
 
-    if (isUserComment(comment)) {
-      userComment = comment;
+    if (isUserComment(commentData)) {
+      userComment = commentData;
     } else {
-      throw new Error(`Invalid comment format: ${JSON.stringify(comment)}`);
+      throw new Error(`Invalid comment format: ${JSON.stringify(commentData)}`);
     }
   } catch (error) {
     console.debug("Error while reading single comment: ", error);
