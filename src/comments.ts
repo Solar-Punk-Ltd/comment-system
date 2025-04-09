@@ -2,13 +2,13 @@ import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
 import { v4 as uuid } from "uuid";
 
 import { isUserComment } from "./asserts/models.assert";
-import { DEFAULT_BEE_URL } from "./constants/constants";
 import { Comment, CommentNode, SingleComment, UserComment } from "./model/comment.model";
 import { Options } from "./model/options.model";
 import { prepareReadOptions, prepareWriteOptions } from "./utils/comments";
 import { FeedReferenceResult } from "./utils/types";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
 import { commentListToTree } from "./utils";
+import { isNumber } from "./asserts/general.assert";
 
 /**
  * Write a comment to the next index of the feed with the given options.
@@ -35,8 +35,8 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
 
   const userCommentObj: UserComment = {
     message: commentObject,
-    timestamp: typeof comment.timestamp === "number" ? comment.timestamp : new Date().getTime(),
-    username: comment.username,
+    timestamp: isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
+    user: comment.user,
   };
 
   try {
@@ -88,9 +88,10 @@ export async function writeCommentToIndex(
 
   const userCommentObj: UserComment = {
     message: commentObject,
-    timestamp: typeof comment.timestamp === "number" ? comment.timestamp : new Date().getTime(),
-    username: comment.username,
+    timestamp: isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
+    user: comment.user,
   };
+
   try {
     const { reference } = await bee.uploadData(stamp, JSON.stringify(userCommentObj));
     console.debug("Comment data upload successful: ", reference);
@@ -249,7 +250,7 @@ export async function readCommentsInRange(
 export async function readSingleComment(index?: FeedIndex, options?: Options): Promise<SingleComment | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
 
-  const bee = new Bee(beeApiUrl || DEFAULT_BEE_URL);
+  const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
   const feedReader = bee.makeFeedReader(new Bytes(identifier).toUint8Array(), address);

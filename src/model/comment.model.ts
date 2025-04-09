@@ -7,9 +7,14 @@ export interface Comment {
   reason?: string;
 }
 
+// TODO: user probably not compatible with legacy objs.
 export interface UserComment {
   message: Comment;
   timestamp: number;
+  user: User;
+}
+
+export interface User {
   username: string;
   address?: string;
 }
