@@ -56,9 +56,9 @@ describe("Comments tests", () => {
         address: testIdentity.address,
       });
       expect(comments.map(c => c)).toStrictEqual([mockComments[0]]);
-    });
 
-    assertAllIsDone();
+      assertAllIsDone();
+    });
   });
 
   describe("Write to index and parallel read", () => {

@@ -1,7 +1,6 @@
 import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
 import { v4 as uuid } from "uuid";
 
-import { isNumber } from "./asserts/general.assert";
 import { isReactionArray } from "./asserts/models.assert";
 import { Options } from "./model/options.model";
 import { Reaction, ReactionsWithIndex } from "./model/reaction.model";
@@ -13,39 +12,41 @@ export async function writeReaction(reaction: Reaction, options?: Options): Prom
   return {} as Reaction;
 }
 
-export async function writeReactionToIndex(
-  reaction: Reaction,
+export async function writeReactionsToIndex(
+  newReaction: Reaction,
+  reactions: Reaction[],
   index?: FeedIndex,
   options?: Options,
-): Promise<Reaction> {
+): Promise<Reaction[] | undefined> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
   if (index === undefined) {
-    console.debug("No index defined - writing reaction to the latest index");
-    return writeReaction(reaction, options);
+    console.debug("No index defined");
+    return;
   }
 
   const reactionFeedId = getReactionFeedId(identifier);
-  const reactionObject: Reaction = {
-    ...reaction,
-    timestamp: isNumber(reaction.timestamp) ? reaction.timestamp : new Date().getTime(),
-    reactionId: reaction?.reactionId || uuid(),
+  const newReactionObject: Reaction = {
+    ...newReaction,
+    reactionId: newReaction.reactionId || uuid(),
   };
 
   const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier);
   const bee = new Bee(beeApiUrl);
 
+  // todo: merge reactions : remove + add
+  const mergedReactions = [...reactions, newReactionObject];
   try {
-    const { reference } = await bee.uploadData(stamp, JSON.stringify(reactionObject));
+    const { reference } = await bee.uploadData(stamp, JSON.stringify(mergedReactions));
     console.debug("Reaction data upload successful: ", reference);
     const feedWriter = bee.makeFeedWriter(new Bytes(reactionFeedId).toUint8Array(), signer.toUint8Array());
 
     const feedResult = await feedWriter.uploadReference(stamp, reference, { index });
     console.debug("Reaction feed updated: ", feedResult.reference);
 
-    return reactionObject;
+    return mergedReactions;
   } catch (error) {
     console.debug("Error while writing reaction data: ", error);
-    return {} as Reaction;
+    return;
   }
 }
 

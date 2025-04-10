@@ -12,8 +12,8 @@ importers:
         specifier: ^9.1.0
         version: 9.1.0
       cafe-utility:
-        specifier: ^27.16.0
-        version: 27.16.0
+        specifier: ^27.16.2
+        version: 27.16.2
       ethers:
         specifier: ^6.13.3
         version: 6.13.5
@@ -1297,8 +1297,8 @@ packages:
   builtin-status-codes@3.0.0:
     resolution: {integrity: sha512-HpGFw18DgFWlncDfjTa2rcQ4W88O1mC8e8yZ2AvQY5KDaktSTwo+KRf6nHK6FRI5FyRyb/5T6+TSxfP7QyGsmQ==}
 
-  cafe-utility@27.16.0:
-    resolution: {integrity: sha512-7xqxbUfEobzZzjHbiFM5lGoIf/MdZS+29FGUpL+YgsmEclE/SULYL3pRqHMAFH1chDQtfSBzJc69Pqv3bQWl0g==}
+  cafe-utility@27.16.2:
+    resolution: {integrity: sha512-EUHTmBdbIT0xh56cWs+upqxmpsojqDyMJEFpV6o5eXnYqxzBpgG7QYx8er2iUy6hkl4kchEwaJ41+25Dz9syzg==}
 
   call-bind-apply-helpers@1.0.2:
     resolution: {integrity: sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==}
@@ -3863,7 +3863,7 @@ snapshots:
   '@ethersphere/bee-js@9.1.0':
     dependencies:
       axios: 0.30.0
-      cafe-utility: 27.16.0
+      cafe-utility: 27.16.2
       isomorphic-ws: 4.0.1(ws@8.18.1)
       semver: 7.7.1
       ws: 8.18.1
@@ -4868,7 +4868,7 @@ snapshots:
 
   builtin-status-codes@3.0.0: {}
 
-  cafe-utility@27.16.0: {}
+  cafe-utility@27.16.2: {}
 
   call-bind-apply-helpers@1.0.2:
     dependencies:

@@ -1,9 +1,32 @@
+import { NULL_ADDRESS, Reference } from "@ethersphere/bee-js";
+
+import { Action, Reaction } from "../src";
 import { UserComment } from "../src/model/comment.model";
 
+export const SWARM_ZERO_ADDRESS = new Reference(NULL_ADDRESS);
+export const BEE_URL = "http://127.0.0.1:1633";
 export const MOCK_STAMP = "89fe1213a9b922425e3894159a04dc7adbadcf52d8d14a1005700f6cd691740d";
 export const mockComments: UserComment[] = [
-  { username: "Xyz", message: { text: "Nice post" }, timestamp: 0 },
-  { username: "Abc", message: { text: "Typo in lorem ipsum" }, timestamp: 1 },
+  { user: { username: "Xyz" }, message: { text: "Nice post" }, timestamp: 0 },
+  { user: { username: "Abc" }, message: { text: "Typo in lorem ipsum" }, timestamp: 1 },
+];
+export const mockReactions: Reaction[] = [
+  {
+    user: { username: "Xyz" },
+    reactionType: "like",
+    action: Action.ADD,
+    targetMessageId: "00",
+    reactionId: "0",
+    timestamp: 0,
+  },
+  {
+    user: { username: "Abc" },
+    reactionType: "dislike",
+    action: Action.ADD,
+    targetMessageId: "11",
+    reactionId: "1",
+    timestamp: 1,
+  },
 ];
 export const testIdentity = {
   privateKey: "634fb5a872396d9693e5c9f9d7233cfa93f395c093371017ff44aa9ae6564cdd",

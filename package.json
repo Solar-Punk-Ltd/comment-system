@@ -46,7 +46,7 @@
   "homepage": "https://github.com/Solar-Punk-Ltd/comment-system#readme",
   "dependencies": {
     "@ethersphere/bee-js": "^9.1.0",
-    "cafe-utility": "^27.16.0",
+    "cafe-utility": "^27.16.2",
     "ethers": "^6.13.3",
     "uuid": "^11.1.0"
   },
