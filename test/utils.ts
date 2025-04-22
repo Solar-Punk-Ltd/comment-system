@@ -1,29 +1,29 @@
 import { NULL_ADDRESS, Reference } from "@ethersphere/bee-js";
 
-import { Action, Reaction } from "../src";
+import { Reaction } from "../src";
 import { UserComment } from "../src/model/comment.model";
 
 export const SWARM_ZERO_ADDRESS = new Reference(NULL_ADDRESS);
 export const BEE_URL = "http://127.0.0.1:1633";
 export const MOCK_STAMP = "89fe1213a9b922425e3894159a04dc7adbadcf52d8d14a1005700f6cd691740d";
+export const user1 = { username: "Xyz", address: "8d3766440f0d7b949a5e32995d09619a7f86e632" };
+export const user2 = { username: "Abc", address: "1d3766440f0d7b949a5e32995d09619a7f86e632" };
 export const mockComments: UserComment[] = [
-  { user: { username: "Xyz" }, message: { text: "Nice post" }, timestamp: 0 },
-  { user: { username: "Abc" }, message: { text: "Typo in lorem ipsum" }, timestamp: 1 },
+  { user: user1, message: { text: "Nice post" }, timestamp: 0 },
+  { user: user2, message: { text: "Typo in lorem ipsum" }, timestamp: 1 },
 ];
 export const mockReactions: Reaction[] = [
   {
-    user: { username: "Xyz" },
+    user: user1,
     reactionType: "like",
-    action: Action.ADD,
     targetMessageId: "00",
     reactionId: "0",
     timestamp: 0,
   },
   {
-    user: { username: "Abc" },
+    user: user2,
     reactionType: "dislike",
-    action: Action.ADD,
-    targetMessageId: "11",
+    targetMessageId: "00",
     reactionId: "1",
     timestamp: 1,
   },

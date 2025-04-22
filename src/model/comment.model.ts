@@ -1,3 +1,5 @@
+import { User } from "./user.model";
+
 export interface Comment {
   text: string;
   messageId?: string;
@@ -12,11 +14,6 @@ export interface UserComment {
   message: Comment;
   timestamp: number;
   user: User;
-}
-
-export interface User {
-  username: string;
-  address?: string;
 }
 
 export interface CommentNode {

@@ -33,7 +33,6 @@ describe("Comments tests", () => {
       const notFoundDataRef = "a329fb22940eac881d5d95c86b0aacb3923b82db071b5ed78b15882ea3a109b0";
       const testChunkHash = "eb8da3795ea4f47b17d1b2740ace7ea0f97b85a8d1beb20e7902f48e79076bbc";
 
-      fetchFeedUpdateMock(testIdentity.address, feedIdentifier).reply(404);
       uploadDataMock(MOCK_STAMP).reply(200, {
         reference: new Reference(dataRef).toString(),
       });

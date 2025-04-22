@@ -1,5 +1,4 @@
 import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
-import { v4 as uuid } from "uuid";
 
 import { isReactionArray } from "./asserts/models.assert";
 import { Options } from "./model/options.model";
@@ -7,46 +6,41 @@ import { Reaction, ReactionsWithIndex } from "./model/reaction.model";
 import { prepareReadOptions, prepareWriteOptions } from "./utils/common";
 import { getReactionFeedId } from "./utils/reactions";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
+import { ReactionError } from "./utils/errors";
 
 export async function writeReaction(reaction: Reaction, options?: Options): Promise<Reaction> {
   return {} as Reaction;
 }
 
 export async function writeReactionsToIndex(
-  newReaction: Reaction,
   reactions: Reaction[],
   index?: FeedIndex,
   options?: Options,
-): Promise<Reaction[] | undefined> {
+): Promise<void> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
   if (index === undefined) {
     console.debug("No index defined");
     return;
   }
 
-  const reactionFeedId = getReactionFeedId(identifier);
-  const newReactionObject: Reaction = {
-    ...newReaction,
-    reactionId: newReaction.reactionId || uuid(),
-  };
+  if (reactions.length === 0) {
+    console.debug("No reactions to write");
+    return;
+  }
 
   const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier);
   const bee = new Bee(beeApiUrl);
 
-  // todo: merge reactions : remove + add
-  const mergedReactions = [...reactions, newReactionObject];
+  const reactionFeedId = getReactionFeedId(identifier, reactions[0].targetMessageId);
   try {
-    const { reference } = await bee.uploadData(stamp, JSON.stringify(mergedReactions));
+    const { reference } = await bee.uploadData(stamp, JSON.stringify(reactions));
     console.debug("Reaction data upload successful: ", reference);
     const feedWriter = bee.makeFeedWriter(new Bytes(reactionFeedId).toUint8Array(), signer.toUint8Array());
 
     const feedResult = await feedWriter.uploadReference(stamp, reference, { index });
     console.debug("Reaction feed updated: ", feedResult.reference);
-
-    return mergedReactions;
   } catch (error) {
     console.debug("Error while writing reaction data: ", error);
-    return;
   }
 }
 
@@ -55,7 +49,6 @@ export async function readReactions(options?: Options): Promise<Reaction[]> {
 }
 
 // TODO: generic feed reader/writer func for both comments and reactions
-// TODO: reaction aggregate functions
 export async function readReactionsWithIndex(
   index?: FeedIndex,
   options?: Options,
@@ -86,7 +79,7 @@ export async function readReactionsWithIndex(
     if (isReactionArray(reactionData)) {
       reactions = reactionData;
     } else {
-      throw new Error(`Invalid reactions format: ${JSON.stringify(reactionData)}`);
+      throw new ReactionError(`Invalid reactions format: ${JSON.stringify(reactionData)}`);
     }
   } catch (error) {
     console.debug("Error while reading reactions: ", error);

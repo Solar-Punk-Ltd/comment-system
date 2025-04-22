@@ -1,2 +1,2 @@
 export { commentListToTree, findCommentNode } from "./comments";
-export { getReactionFeedId } from "./reactions";
+export { getReactionFeedId, updateReactions } from "./reactions";
