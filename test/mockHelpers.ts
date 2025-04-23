@@ -11,7 +11,7 @@ import {
 } from "@ethersphere/bee-js";
 import { Optional } from "cafe-utility";
 
-import { FeedPayloadResult } from "../src/utils/types";
+import { FeedPayloadResult, FeedReferenceResult } from "../src/utils/types";
 
 import { SWARM_ZERO_ADDRESS } from "./utils";
 
@@ -26,9 +26,21 @@ export function createMockGetFeedDataResult(currentIndex = 0, nextIndex = 1, dat
 export function createMockFeedReader(char: string = "1"): FeedReader {
   return {
     owner: new EthAddress(char.repeat(40)),
-    download: jest.fn().mockRejectedValue({ payload: new Bytes(char.repeat(64)) }),
-    downloadReference: jest.fn().mockRejectedValue({ reference: new Reference(char.repeat(64)) }),
-    downloadPayload: jest.fn().mockResolvedValue({ payload: new Bytes(char.repeat(64)) }),
+    download: jest.fn().mockResolvedValue({
+      payload: new Bytes(char.repeat(64)),
+      feedIndex: FeedIndex.fromBigInt(1n),
+      feedIndexNext: FeedIndex.fromBigInt(2n),
+    } as FeedPayloadResult),
+    downloadReference: jest.fn().mockResolvedValue({
+      reference: new Reference(char.repeat(64)),
+      feedIndex: FeedIndex.fromBigInt(1n),
+      feedIndexNext: FeedIndex.fromBigInt(2n),
+    } as FeedReferenceResult),
+    downloadPayload: jest.fn().mockResolvedValue({
+      payload: new Bytes(char.repeat(64)),
+      feedIndex: FeedIndex.fromBigInt(1n),
+      feedIndexNext: FeedIndex.fromBigInt(2n),
+    } as FeedPayloadResult),
     topic: Topic.fromString(char),
   };
 }
@@ -60,10 +72,3 @@ export function createInitMocks(data?: Reference): any {
   jest.spyOn(Bee.prototype, "makeFeedWriter").mockReturnValue(createMockFeedWriter());
   jest.spyOn(Bee.prototype, "makeFeedReader").mockReturnValue(createMockFeedReader());
 }
-
-// export function createUploadDataSpy(char: string): jest.SpyInstance {
-//   return jest.spyOn(Bee.prototype, "uploadData").mockResolvedValueOnce({
-//     reference: new Reference(char.repeat(64)),
-//     historyAddress: Optional.of(SWARM_ZERO_ADDRESS),
-//   });
-// }

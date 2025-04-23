@@ -8,20 +8,12 @@ import { ReactionError } from "./utils/errors";
 import { getReactionFeedId } from "./utils/reactions";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
 
-export async function writeReaction(reaction: Reaction, options?: Options): Promise<Reaction> {
-  return {} as Reaction;
-}
-
 export async function writeReactionsToIndex(
   reactions: Reaction[],
   index?: FeedIndex,
   options?: Options,
 ): Promise<void> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
-  if (index === undefined) {
-    console.debug("No index defined");
-    return;
-  }
 
   if (reactions.length === 0) {
     console.debug("No reactions to write");
@@ -34,18 +26,12 @@ export async function writeReactionsToIndex(
   const reactionFeedId = getReactionFeedId(identifier, reactions[0].targetMessageId);
   try {
     const { reference } = await bee.uploadData(stamp, JSON.stringify(reactions));
-    console.debug("Reaction data upload successful: ", reference);
     const feedWriter = bee.makeFeedWriter(new Bytes(reactionFeedId).toUint8Array(), signer.toUint8Array());
 
-    const feedResult = await feedWriter.uploadReference(stamp, reference, { index });
-    console.debug("Reaction feed updated: ", feedResult.reference);
+    await feedWriter.uploadReference(stamp, reference.toUint8Array(), index === undefined ? undefined : { index });
   } catch (error) {
     console.debug("Error while writing reaction data: ", error);
   }
-}
-
-export async function readReactions(options?: Options): Promise<Reaction[]> {
-  return [] as Reaction[];
 }
 
 // TODO: generic feed reader/writer func for both comments and reactions
