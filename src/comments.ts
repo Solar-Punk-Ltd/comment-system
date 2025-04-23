@@ -1,7 +1,7 @@
 import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
+import { Types } from "cafe-utility";
 import { v4 as uuid } from "uuid";
 
-import { isNumber } from "./asserts/general.assert";
 import { isUserComment } from "./asserts/models.assert";
 import { Comment, CommentNode, SingleComment, UserComment } from "./model/comment.model";
 import { Options } from "./model/options.model";
@@ -35,7 +35,7 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
 
   const userCommentObj: UserComment = {
     message: commentObject,
-    timestamp: isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
+    timestamp: Types.isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
     user: comment.user,
   };
 
@@ -88,7 +88,7 @@ export async function writeCommentToIndex(
 
   const userCommentObj: UserComment = {
     message: commentObject,
-    timestamp: isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
+    timestamp: Types.isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
     user: comment.user,
   };
 

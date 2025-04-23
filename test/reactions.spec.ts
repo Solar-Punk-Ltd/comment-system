@@ -1,6 +1,7 @@
 import { FeedIndex, PrivateKey, Reference } from "@ethersphere/bee-js";
 
 import { Action, Reaction, readReactions, readReactionsWithIndex, writeReactionsToIndex } from "../src/index";
+import { ReactionError } from "../src/utils/errors";
 import { getReactionFeedId, updateReactions } from "../src/utils/reactions";
 
 import { createInitMocks } from "./mockHelpers";
@@ -45,9 +46,29 @@ describe("getReactionFeedId", () => {
     expect(feedId).toHaveLength(64);
     expect(feedId).toStrictEqual("c5d2f91c27f8d044b7f67a4e25b53225833942f597230bd20c7af8af4c81b1cb");
   });
+
+  it("should throw an error if targetMessageId is empty", () => {
+    expect(() => getReactionFeedId(feedIdentifier, "")).toThrow(new ReactionError("targetMessageId cannot be empty"));
+  });
 });
 
 describe("updateReactions", () => {
+  it("should throw an error if targetMessageId does not match", () => {
+    const newReaction: Reaction = {
+      user: { username: "Random", address: "1234".repeat(10) },
+      reactionType: "like",
+      targetMessageId: "011",
+      reactionId: "2",
+      timestamp: 2,
+    };
+
+    expect(() => updateReactions(mockReactions, newReaction, Action.ADD)).toThrow(
+      new ReactionError(
+        `Reactions have different targetMessageIds: ${mockReactions[0].targetMessageId} vs ${newReaction.targetMessageId}`,
+      ),
+    );
+  });
+
   it("should ADD an existing reaction from a new user", () => {
     const newReaction: Reaction = {
       user: { username: "Random", address: "1234".repeat(10) },

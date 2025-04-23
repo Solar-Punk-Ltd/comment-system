@@ -1,5 +1,7 @@
 import { Topic } from "@ethersphere/bee-js";
+
 import { Action, Reaction } from "../model";
+
 import { ReactionError } from "./errors";
 
 export const getReactionFeedId = (identifier: string, targetMessageId: string): string => {
@@ -19,7 +21,7 @@ export function updateReactions(reactions: Reaction[], newReaction: Reaction, ac
         `Reactions have different targetMessageIds: ${r.targetMessageId} vs ${newReaction.targetMessageId}`,
       );
     }
-    // todo: filter out should not create duplicates with EDIT by editing an existing reaction of the same user
+
     const isSameUser = r.user.address === newReaction.user.address;
     if (isSameUser && r.reactionType === newReaction.reactionType) {
       existingReactionIx = ix;
@@ -30,27 +32,26 @@ export function updateReactions(reactions: Reaction[], newReaction: Reaction, ac
     }
   });
 
-  const mergedReactions = [...reactions];
-  console.log("bagoy existingReactionIx: ", existingReactionIx);
+  const updatedReactions = [...reactions];
 
   switch (action) {
     case Action.ADD:
       if (existingReactionIx < 0) {
-        mergedReactions.push(newReaction);
-        return mergedReactions;
+        updatedReactions.push(newReaction);
+        return updatedReactions;
       }
       break;
     case Action.REMOVE:
       if (existingReactionIx >= 0) {
-        mergedReactions.splice(existingReactionIx, 1);
-        return mergedReactions;
+        updatedReactions.splice(existingReactionIx, 1);
+        return updatedReactions;
       }
       break;
     case Action.EDIT:
-      if (editedReactionIx >= 0) {
-        mergedReactions.splice(editedReactionIx, 1);
-        mergedReactions.push(newReaction);
-        return mergedReactions;
+      if (editedReactionIx >= 0 && existingReactionIx < 0) {
+        updatedReactions.splice(editedReactionIx, 1);
+        updatedReactions.push(newReaction);
+        return updatedReactions;
       }
       break;
     default:

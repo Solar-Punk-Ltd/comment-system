@@ -1,16 +1,11 @@
 import {
-  BatchId,
   Bee,
-  BeeVersions,
   Bytes,
-  Duration,
   EthAddress,
   FeedIndex,
   FeedReader,
   FeedWriter,
-  NumberString,
   Reference,
-  Size,
   Topic,
   UploadResult,
 } from "@ethersphere/bee-js";
@@ -18,7 +13,7 @@ import { Optional } from "cafe-utility";
 
 import { FeedPayloadResult } from "../src/utils/types";
 
-import { BEE_URL, SWARM_ZERO_ADDRESS } from "./utils";
+import { SWARM_ZERO_ADDRESS } from "./utils";
 
 export function createMockGetFeedDataResult(currentIndex = 0, nextIndex = 1, data = "dummy"): FeedPayloadResult {
   return {

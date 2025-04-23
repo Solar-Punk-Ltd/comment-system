@@ -4,9 +4,9 @@ import { isReactionArray } from "./asserts/models.assert";
 import { Options } from "./model/options.model";
 import { Reaction, ReactionsWithIndex } from "./model/reaction.model";
 import { prepareReadOptions, prepareWriteOptions } from "./utils/common";
+import { ReactionError } from "./utils/errors";
 import { getReactionFeedId } from "./utils/reactions";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
-import { ReactionError } from "./utils/errors";
 
 export async function writeReaction(reaction: Reaction, options?: Options): Promise<Reaction> {
   return {} as Reaction;

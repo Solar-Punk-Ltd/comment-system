@@ -7,7 +7,6 @@ import {
   assertAllIsDone,
   downloadDataMock,
   fetchChunkMock,
-  fetchFeedUpdateMock,
   MOCK_SERVER_URL,
   socPostMock,
   uploadDataMock,
