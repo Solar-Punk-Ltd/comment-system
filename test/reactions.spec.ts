@@ -49,7 +49,7 @@ describe("writeReactionsToIndex", () => {
 
     expect(uploadDataSpy).toHaveBeenCalledWith(MOCK_STAMP, JSON.stringify(mockReactions));
     expect(makeFeedWriterSpy).toHaveBeenCalledWith(
-      new Bytes(reactionFeedId).toUint8Array(),
+      reactionFeedId.toUint8Array(),
       new PrivateKey(testIdentity.privateKey).toUint8Array(),
     );
     expect(uploadReferenceSpy).toHaveBeenCalledWith(MOCK_STAMP, mockRef.toUint8Array(), { index: newIndex });
@@ -89,7 +89,7 @@ describe("writeReactionsToIndex", () => {
 
     expect(uploadDataSpy).toHaveBeenCalledWith(MOCK_STAMP, JSON.stringify(mockReactions));
     expect(makeFeedWriterSpy).toHaveBeenCalledWith(
-      new Bytes(reactionFeedId).toUint8Array(),
+      reactionFeedId.toUint8Array(),
       new PrivateKey(testIdentity.privateKey).toUint8Array(),
     );
     expect(uploadReferenceSpy).toHaveBeenCalledWith(MOCK_STAMP, mockRef.toUint8Array(), undefined);
@@ -138,7 +138,7 @@ describe("readReactionsWithIndex", () => {
     const newIndex = FeedIndex.fromBigInt(5n);
     const reactionFeedId = getReactionFeedId(feedIdentifier, mockReactions[0].targetMessageId);
     const reactions = await readReactionsWithIndex(newIndex, {
-      identifier: reactionFeedId,
+      identifier: reactionFeedId.toString(),
       address: testIdentity.address,
     });
     expect(reactions).toBeDefined();
@@ -146,7 +146,7 @@ describe("readReactionsWithIndex", () => {
     expect(reactions?.nextIndex).toStrictEqual(FeedIndex.fromBigInt(newIndex.toBigInt() + 1n).toString());
 
     expect(downloadReferenceSpy).toHaveBeenCalledWith({ index: newIndex });
-    expect(makeFeedReaderSpy).toHaveBeenCalledWith(new Bytes(reactionFeedId).toUint8Array(), testIdentity.address);
+    expect(makeFeedReaderSpy).toHaveBeenCalledWith(reactionFeedId.toString(), testIdentity.address);
     expect(downloadDataSpy).toHaveBeenCalledWith(mockRef.toUint8Array());
   });
 
@@ -168,21 +168,21 @@ describe("readReactionsWithIndex", () => {
 
     const reactionFeedId = getReactionFeedId(feedIdentifier, mockReactions[0].targetMessageId);
     const reactions = await readReactionsWithIndex(undefined, {
-      identifier: reactionFeedId,
+      identifier: reactionFeedId.toString(),
       address: testIdentity.address,
     });
     expect(reactions).toBeDefined();
     expect(reactions?.reactions).toStrictEqual(mockReactions);
     expect(reactions?.nextIndex).toStrictEqual(nextIndex.toString());
 
-    expect(makeFeedReaderSpy).toHaveBeenCalledWith(new Bytes(reactionFeedId).toUint8Array(), testIdentity.address);
+    expect(makeFeedReaderSpy).toHaveBeenCalledWith(reactionFeedId.toString(), testIdentity.address);
     expect(downloadSpy).toHaveBeenCalled();
   });
 });
 
 describe("getReactionFeedId", () => {
   it("should get the correct reaction feed ID", () => {
-    const feedId = getReactionFeedId(feedIdentifier, "00");
+    const feedId = getReactionFeedId(feedIdentifier, "00").toString();
     expect(feedId).toBeDefined();
     expect(feedId).toHaveLength(64);
     expect(feedId).toStrictEqual("c5d2f91c27f8d044b7f67a4e25b53225833942f597230bd20c7af8af4c81b1cb");

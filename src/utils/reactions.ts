@@ -4,12 +4,12 @@ import { Action, Reaction } from "../model";
 
 import { ReactionError } from "./errors";
 
-export const getReactionFeedId = (identifier: string, targetMessageId: string): string => {
+export const getReactionFeedId = (identifier: string, targetMessageId: string): Topic => {
   if (targetMessageId.length === 0) {
     throw new ReactionError("targetMessageId cannot be empty");
   }
 
-  return Topic.fromString(identifier.concat(targetMessageId)).toString();
+  return Topic.fromString(identifier.concat(targetMessageId));
 };
 
 export function updateReactions(reactions: Reaction[], newReaction: Reaction, action: Action): Reaction[] | undefined {

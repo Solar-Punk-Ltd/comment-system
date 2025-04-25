@@ -1,4 +1,4 @@
-import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
+import { Bee, FeedIndex } from "@ethersphere/bee-js";
 
 import { isReactionArray } from "./asserts/models.assert";
 import { Options } from "./model/options.model";
@@ -26,7 +26,7 @@ export async function writeReactionsToIndex(
   const reactionFeedId = getReactionFeedId(identifier, reactions[0].targetMessageId);
   try {
     const { reference } = await bee.uploadData(stamp, JSON.stringify(reactions));
-    const feedWriter = bee.makeFeedWriter(new Bytes(reactionFeedId).toUint8Array(), signer.toUint8Array());
+    const feedWriter = bee.makeFeedWriter(reactionFeedId.toUint8Array(), signer.toUint8Array());
 
     await feedWriter.uploadReference(stamp, reference.toUint8Array(), index === undefined ? undefined : { index });
   } catch (error) {
@@ -44,7 +44,7 @@ export async function readReactionsWithIndex(
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const feedReader = bee.makeFeedReader(new Bytes(identifier).toUint8Array(), address);
+  const feedReader = bee.makeFeedReader(identifier, address);
 
   let reactions: Reaction[] = [];
   let nextIndex: string;
