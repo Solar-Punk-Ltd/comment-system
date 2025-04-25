@@ -23,7 +23,7 @@ export async function writeReactionsToIndex(
   const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier);
   const bee = new Bee(beeApiUrl);
 
-  const reactionFeedId = getReactionFeedId(identifier, reactions[0].targetMessageId);
+  const reactionFeedId = getReactionFeedId(reactions[0].targetMessageId);
   try {
     const { reference } = await bee.uploadData(stamp, JSON.stringify(reactions));
     const feedWriter = bee.makeFeedWriter(reactionFeedId.toUint8Array(), signer.toUint8Array());

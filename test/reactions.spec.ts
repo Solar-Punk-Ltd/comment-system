@@ -45,7 +45,7 @@ describe("writeReactionsToIndex", () => {
       signer: new PrivateKey(testIdentity.privateKey),
       address: testIdentity.address,
     });
-    const reactionFeedId = getReactionFeedId(feedIdentifier, mockReactions[0].targetMessageId);
+    const reactionFeedId = getReactionFeedId(mockReactions[0].targetMessageId);
 
     expect(uploadDataSpy).toHaveBeenCalledWith(MOCK_STAMP, JSON.stringify(mockReactions));
     expect(makeFeedWriterSpy).toHaveBeenCalledWith(
@@ -85,7 +85,7 @@ describe("writeReactionsToIndex", () => {
       signer: new PrivateKey(testIdentity.privateKey),
       address: testIdentity.address,
     });
-    const reactionFeedId = getReactionFeedId(feedIdentifier, mockReactions[0].targetMessageId);
+    const reactionFeedId = getReactionFeedId(mockReactions[0].targetMessageId);
 
     expect(uploadDataSpy).toHaveBeenCalledWith(MOCK_STAMP, JSON.stringify(mockReactions));
     expect(makeFeedWriterSpy).toHaveBeenCalledWith(
@@ -136,7 +136,7 @@ describe("readReactionsWithIndex", () => {
     });
 
     const newIndex = FeedIndex.fromBigInt(5n);
-    const reactionFeedId = getReactionFeedId(feedIdentifier, mockReactions[0].targetMessageId);
+    const reactionFeedId = getReactionFeedId(mockReactions[0].targetMessageId);
     const reactions = await readReactionsWithIndex(newIndex, {
       identifier: reactionFeedId.toString(),
       address: testIdentity.address,
@@ -166,7 +166,7 @@ describe("readReactionsWithIndex", () => {
       topic: Topic.fromString("default-topic"),
     });
 
-    const reactionFeedId = getReactionFeedId(feedIdentifier, mockReactions[0].targetMessageId);
+    const reactionFeedId = getReactionFeedId(mockReactions[0].targetMessageId);
     const reactions = await readReactionsWithIndex(undefined, {
       identifier: reactionFeedId.toString(),
       address: testIdentity.address,
@@ -182,14 +182,14 @@ describe("readReactionsWithIndex", () => {
 
 describe("getReactionFeedId", () => {
   it("should get the correct reaction feed ID", () => {
-    const feedId = getReactionFeedId(feedIdentifier, "00").toString();
+    const feedId = getReactionFeedId("00").toString();
     expect(feedId).toBeDefined();
     expect(feedId).toHaveLength(64);
-    expect(feedId).toStrictEqual("c5d2f91c27f8d044b7f67a4e25b53225833942f597230bd20c7af8af4c81b1cb");
+    expect(feedId).toStrictEqual("e3f0ae350ee09657933cd8202a4dd563c5af941f8054e6d7191e3246be378290");
   });
 
   it("should throw an error if targetMessageId is empty", () => {
-    expect(() => getReactionFeedId(feedIdentifier, "")).toThrow(new ReactionError("targetMessageId cannot be empty"));
+    expect(() => getReactionFeedId("")).toThrow(new ReactionError("targetMessageId cannot be empty"));
   });
 });
 
