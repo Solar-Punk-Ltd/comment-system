@@ -14,11 +14,6 @@ export async function writeReactionsToIndex(
 ): Promise<void> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
 
-  if (reactions.length === 0) {
-    console.debug("No reactions to write");
-    return;
-  }
-
   const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier);
   const bee = new Bee(beeApiUrl);
 

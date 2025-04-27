@@ -95,18 +95,44 @@ describe("writeReactionsToIndex", () => {
     expect(uploadReferenceSpy).toHaveBeenCalledWith(MOCK_STAMP, mockRef.toUint8Array(), undefined);
   });
 
-  it("should return if reactions array is empty", async () => {
-    const logSpy = jest.spyOn(console, "debug");
+  it("should be able to write an empty array", async () => {
+    const mockRef = new Reference("1".repeat(64));
+    createInitMocks(mockRef);
+
     const uploadDataSpy = jest.spyOn(Bee.prototype, "uploadData");
-    const newIndex = FeedIndex.fromBigInt(5n);
-    await writeReactionsToIndex([], newIndex, {
+
+    const uploadReferenceSpy = jest.fn().mockResolvedValue(
+      jest.fn().mockResolvedValue({
+        reference: mockRef,
+        historyAddress: Optional.of(SWARM_ZERO_ADDRESS),
+      } as UploadResult),
+    );
+
+    const makeFeedWriterSpy = jest.spyOn(Bee.prototype, "makeFeedWriter").mockReturnValue({
+      uploadReference: uploadReferenceSpy,
+      upload: jest.fn(),
+      uploadPayload: jest.fn(),
+      download: jest.fn(),
+      downloadReference: jest.fn(),
+      downloadPayload: jest.fn(),
+      owner: new EthAddress("1".repeat(40)),
+      topic: Topic.fromString("default-topic"),
+    });
+
+    const reactionFeedId = getReactionFeedId(mockReactions[0].targetMessageId).toString();
+    await writeReactionsToIndex([], undefined, {
       stamp: MOCK_STAMP,
-      identifier: feedIdentifier,
+      identifier: reactionFeedId,
       signer: new PrivateKey(testIdentity.privateKey),
       address: testIdentity.address,
     });
-    expect(uploadDataSpy).not.toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledWith("No reactions to write");
+
+    expect(uploadDataSpy).toHaveBeenCalledWith(MOCK_STAMP, JSON.stringify([]));
+    expect(makeFeedWriterSpy).toHaveBeenCalledWith(
+      reactionFeedId,
+      new PrivateKey(testIdentity.privateKey).toUint8Array(),
+    );
+    expect(uploadReferenceSpy).toHaveBeenCalledWith(MOCK_STAMP, mockRef.toUint8Array(), undefined);
   });
 });
 
