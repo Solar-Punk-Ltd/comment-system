@@ -3,10 +3,22 @@ import { Bee, FeedIndex } from "@ethersphere/bee-js";
 import { isReactionArray } from "./asserts/models.assert";
 import { Options } from "./model/options.model";
 import { Reaction, ReactionsWithIndex } from "./model/reaction.model";
-import { prepareReadOptions, prepareWriteOptions } from "./utils/common";
+import { prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
 import { ReactionError } from "./utils/errors";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
 
+/**
+ * Writes a list of reactions to a feed index using the Bee API.
+ *
+ * @param reactions - An array of `Reaction` objects to be written to the feed.
+ * @param index - (Optional) The feed index to which the reactions will be written. If not provided, the default index is used.
+ * @param options The options to use for writing the reactions.
+ * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
+ * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
+ * @throws StampError if no valid stamp is found.
+ *
+ * @returns A promise that resolves when the reactions have been successfully written to the feed.
+ */
 export async function writeReactionsToIndex(
   reactions: Reaction[],
   index?: FeedIndex,
@@ -18,16 +30,23 @@ export async function writeReactionsToIndex(
   const bee = new Bee(beeApiUrl);
 
   try {
-    const { reference } = await bee.uploadData(stamp, JSON.stringify(reactions));
-    const feedWriter = bee.makeFeedWriter(identifier, signer.toUint8Array());
-
-    await feedWriter.uploadReference(stamp, reference.toUint8Array(), index === undefined ? undefined : { index });
+    await writeFeedData(bee, identifier, stamp, signer.toUint8Array(), JSON.stringify(reactions), index);
   } catch (error) {
     console.debug("Error while writing reaction data: ", error);
   }
 }
 
-// TODO: generic feed reader/writer func for both comments and reactions
+/**
+ * Reads and array of reaction objects from a feed.
+ *
+ * @param index - (Optional) The feed index from which the reactions will be read. If not provided, a lookup is performed.
+ * @param options The options to use for writing the reactions.
+ * @throws {ReactionError} If the reaction data format is invalid.
+ * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
+ * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
+ *
+ * @returns A promise that resolves to an object containing the reactions and the next feed index, or `undefined` if an error occurs.
+ */
 export async function readReactionsWithIndex(
   index?: FeedIndex,
   options?: Options,
@@ -37,23 +56,11 @@ export async function readReactionsWithIndex(
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const feedReader = bee.makeFeedReader(identifier, address);
-
   let reactions: Reaction[] = [];
-  let nextIndex: string;
-  let reactionData: any;
+  let nextIx: string;
   try {
-    if (index === undefined) {
-      const feedUpdate = await feedReader.download();
-      const { feedIndexNext, payload } = feedUpdate;
-      reactionData = payload.toJSON();
-      nextIndex = feedIndexNext?.toString() || FeedIndex.fromBigInt(0n).toString();
-    } else {
-      const feedUpdate = await feedReader.downloadReference({ index });
-      nextIndex = FeedIndex.fromBigInt(index.toBigInt() + 1n).toString();
-      const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
-      reactionData = data.toJSON();
-    }
+    const { objectdata: reactionData, nextIndex } = await readFeedData(bee, identifier, address, index);
+    nextIx = nextIndex.toString();
 
     if (isReactionArray(reactionData)) {
       reactions = reactionData;
@@ -65,5 +72,5 @@ export async function readReactionsWithIndex(
     return;
   }
 
-  return { reactions: reactions, nextIndex: nextIndex };
+  return { reactions: reactions, nextIndex: nextIx };
 }

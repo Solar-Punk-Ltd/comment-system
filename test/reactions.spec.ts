@@ -7,7 +7,7 @@ import { getReactionFeedId, updateReactions } from "../src/utils/reactions";
 import { FeedPayloadResult, FeedReferenceResult } from "../src/utils/types";
 
 import { createInitMocks } from "./mockHelpers";
-import { feedIdentifier, MOCK_STAMP, mockReactions, SWARM_ZERO_ADDRESS, testIdentity, user1 } from "./utils";
+import { MOCK_STAMP, mockReactions, SWARM_ZERO_ADDRESS, testIdentity, user1 } from "./utils";
 
 describe("writeReactionsToIndex", () => {
   beforeEach(async () => {
