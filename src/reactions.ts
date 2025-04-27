@@ -5,7 +5,6 @@ import { Options } from "./model/options.model";
 import { Reaction, ReactionsWithIndex } from "./model/reaction.model";
 import { prepareReadOptions, prepareWriteOptions } from "./utils/common";
 import { ReactionError } from "./utils/errors";
-import { getReactionFeedId } from "./utils/reactions";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
 
 export async function writeReactionsToIndex(
@@ -23,10 +22,9 @@ export async function writeReactionsToIndex(
   const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier);
   const bee = new Bee(beeApiUrl);
 
-  const reactionFeedId = getReactionFeedId(reactions[0].targetMessageId);
   try {
     const { reference } = await bee.uploadData(stamp, JSON.stringify(reactions));
-    const feedWriter = bee.makeFeedWriter(reactionFeedId.toUint8Array(), signer.toUint8Array());
+    const feedWriter = bee.makeFeedWriter(identifier, signer.toUint8Array());
 
     await feedWriter.uploadReference(stamp, reference.toUint8Array(), index === undefined ? undefined : { index });
   } catch (error) {
