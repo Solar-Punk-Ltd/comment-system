@@ -1,57 +1,12 @@
-import { DEFAULT_BEE_URL } from "../constants/constants";
 import { CommentNode, UserComment } from "../model/comment.model";
-import { Options } from "../model/options.model";
-import { Optional } from "../model/util.types";
 
-import { IdentifierError, StampError } from "./errors";
-import { getUsableStamp } from "./stamps";
-import { getIdentifierFromUrl } from "./url";
-
-async function prepareOptions(
-  options: Options = {},
-  stampRequired = true,
-): Promise<Optional<Required<Options>, "stamp" | "signer" | "address">> {
-  const beeApiUrl = options.beeApiUrl ?? DEFAULT_BEE_URL;
-  const { signer, address } = options;
-  let { identifier, stamp } = options;
-
-  if (!identifier) {
-    identifier = getIdentifierFromUrl(window.location.href);
-  }
-
-  if (!identifier) {
-    throw new IdentifierError("Cannot generate private key from an invalid URL");
-  }
-
-  if (!stamp && stampRequired) {
-    const usableStamp = await getUsableStamp(beeApiUrl);
-
-    if (!usableStamp) {
-      throw new StampError("No available stamps found.");
-    }
-
-    stamp = usableStamp.batchID;
-  }
-
-  return {
-    stamp,
-    identifier,
-    beeApiUrl,
-    signer,
-    address,
-  };
-}
-
-export function prepareWriteOptions(options: Options = {}): Promise<Optional<Required<Options>, "signer">> {
-  return prepareOptions(options) as Promise<Optional<Required<Options>, "signer">>;
-}
-
-export function prepareReadOptions(
-  options: Options = {},
-): Promise<Omit<Optional<Required<Options>, "address">, "stamp" | "signer">> {
-  return prepareOptions(options, false);
-}
-
+/**
+ * Recursively searches for a comment node with the specified ID within a tree of comment nodes.
+ *
+ * @param nodes - An array of `CommentNode` objects to search through.
+ * @param id - The unique identifier of the comment node to find.
+ * @returns The `CommentNode` with the matching ID, or `undefined` if no such node is found.
+ */
 export function findCommentNode(nodes: CommentNode[], id: string): CommentNode | undefined {
   let node: CommentNode | undefined;
 
@@ -72,6 +27,16 @@ export function findCommentNode(nodes: CommentNode[], id: string): CommentNode |
   return node;
 }
 
+/**
+ * Converts a flat list of user comments into a tree structure based on thread IDs.
+ *
+ * @param comments - An array of user comments to be transformed into a tree structure.
+ * @returns An array of `CommentNode` objects representing the hierarchical structure of comments.
+ *
+ * Each comment is represented as a `CommentNode` containing the comment itself and its replies.
+ * If a comment has a `threadId`, it is treated as a reply and added to the `replies` array
+ * of the corresponding parent comment node. Comments without a `threadId` are treated as root nodes.
+ */
 export function commentListToTree(comments: UserComment[]): CommentNode[] {
   const nodes: CommentNode[] = [];
 

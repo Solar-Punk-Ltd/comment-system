@@ -1,5 +1,4 @@
-import { Bytes, EthAddress, PrivateKey } from "@ethersphere/bee-js";
-import { Binary } from "cafe-utility";
+import { EthAddress, PrivateKey, Topic } from "@ethersphere/bee-js";
 
 import { PrivateKeyError } from "./errors";
 
@@ -22,9 +21,7 @@ export function getIdentifierFromUrl(url: string): string {
     return result;
   }
 
-  const idBytes = Binary.keccak256(Bytes.fromUtf8(url).toUint8Array());
-
-  return new Bytes(idBytes).toString();
+  return Topic.fromString(url).toString();
 }
 
 export function getPrivateKeyFromIdentifier(identifier: string): PrivateKey {
@@ -32,9 +29,7 @@ export function getPrivateKeyFromIdentifier(identifier: string): PrivateKey {
     throw new PrivateKeyError("Cannot generate private key from an invalid identifier");
   }
 
-  const idBytes = Bytes.fromUtf8(identifier).toUint8Array();
-
-  return new PrivateKey(Binary.keccak256(idBytes));
+  return new PrivateKey(Topic.fromString(identifier).toUint8Array());
 }
 
 export function getPrivateKeyFromUrl(url: string): PrivateKey {

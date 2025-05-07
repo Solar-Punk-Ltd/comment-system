@@ -1,3 +1,5 @@
+import { User } from "./user.model";
+
 export interface Comment {
   text: string;
   messageId?: string;
@@ -7,11 +9,11 @@ export interface Comment {
   reason?: string;
 }
 
+// TODO: user probably not compatible with legacy objs.
 export interface UserComment {
   message: Comment;
   timestamp: number;
-  username: string;
-  address?: string;
+  user: User;
 }
 
 export interface CommentNode {

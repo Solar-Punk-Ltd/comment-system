@@ -1,11 +1,11 @@
 import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
+import { Types } from "cafe-utility";
 import { v4 as uuid } from "uuid";
 
 import { isUserComment } from "./asserts/models.assert";
-import { DEFAULT_BEE_URL } from "./constants/constants";
 import { Comment, CommentNode, SingleComment, UserComment } from "./model/comment.model";
 import { Options } from "./model/options.model";
-import { prepareReadOptions, prepareWriteOptions } from "./utils/comments";
+import { prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
 import { FeedReferenceResult } from "./utils/types";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
 import { commentListToTree } from "./utils";
@@ -35,16 +35,18 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
 
   const userCommentObj: UserComment = {
     message: commentObject,
-    timestamp: typeof comment.timestamp === "number" ? comment.timestamp : new Date().getTime(),
-    username: comment.username,
+    timestamp: Types.isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
+    user: comment.user,
   };
 
   try {
-    const { reference } = await bee.uploadData(stamp, JSON.stringify(userCommentObj));
-    console.debug("Comment data upload successful: ", reference);
-    const feedWriter = bee.makeFeedWriter(new Bytes(identifier).toUint8Array(), signer.toUint8Array());
-    const feedResult = await feedWriter.uploadReference(stamp, reference);
-    console.debug("Comment feed updated: ", feedResult.reference);
+    await writeFeedData(
+      bee,
+      new Bytes(identifier).toUint8Array(),
+      stamp,
+      signer.toUint8Array(),
+      JSON.stringify(userCommentObj),
+    );
 
     return userCommentObj;
   } catch (error) {
@@ -88,17 +90,19 @@ export async function writeCommentToIndex(
 
   const userCommentObj: UserComment = {
     message: commentObject,
-    timestamp: typeof comment.timestamp === "number" ? comment.timestamp : new Date().getTime(),
-    username: comment.username,
+    timestamp: Types.isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
+    user: comment.user,
   };
+
   try {
-    const { reference } = await bee.uploadData(stamp, JSON.stringify(userCommentObj));
-    console.debug("Comment data upload successful: ", reference);
-    const feedWriter = bee.makeFeedWriter(new Bytes(identifier).toUint8Array(), signer.toUint8Array());
-
-    const feedResult = await feedWriter.uploadReference(stamp, reference, { index });
-    console.debug("Comment feed updated: ", feedResult.reference);
-
+    await writeFeedData(
+      bee,
+      new Bytes(identifier).toUint8Array(),
+      stamp,
+      signer.toUint8Array(),
+      JSON.stringify(userCommentObj),
+      index,
+    );
     return userCommentObj;
   } catch (error) {
     console.debug("Error while writing comment: ", error);
@@ -112,7 +116,6 @@ export async function writeCommentToIndex(
  * @param options The options to use for reading the comment.
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
- * @throws StampError if no valid stamp is found.
  *
  * @returns The the array of comment objects that were read from the feed.
  */
@@ -123,22 +126,21 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
 
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const feedReader = bee.makeFeedReader(new Bytes(identifier).toUint8Array(), address);
-
   const userComments: UserComment[] = [];
 
   let nextIndex = 0n;
 
   while (true) {
     try {
-      const feedUpdate = await feedReader.downloadReference({ index: FeedIndex.fromBigInt(nextIndex++) });
+      const { objectdata: commentData } = await readFeedData(
+        bee,
+        new Bytes(identifier).toUint8Array(),
+        address,
+        FeedIndex.fromBigInt(nextIndex++),
+      );
 
-      const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
-
-      const comment = data.toJSON();
-
-      if (isUserComment(comment)) {
-        userComments.push(comment);
+      if (isUserComment(commentData)) {
+        userComments.push(commentData);
       }
     } catch (_) {
       break;
@@ -151,15 +153,20 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
 /**
  * Read nested comments in succession until the latest index of the feed with the given options.
  *
+ * @param start The start index of the range.
+ * @param end The end index of the range.
  * @param options The options to use for reading the comment.
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
- * @throws StampError if no valid stamp is found.
  *
  * @returns The the array of nested comment objects that were read from the feed.
  */
-export async function readCommentsAsTree(options?: Options): Promise<CommentNode[]> {
-  const userComments = await readComments(options);
+export async function readCommentsAsTree(
+  start?: FeedIndex,
+  end?: FeedIndex,
+  options?: Options,
+): Promise<CommentNode[]> {
+  const userComments = await readCommentsInRange(start, end, options);
 
   return commentListToTree(userComments);
 }
@@ -173,7 +180,6 @@ export async function readCommentsAsTree(options?: Options): Promise<CommentNode
  * @param options The options to use for reading the comment.
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
- * @throws StampError if no valid stamp is found.
  *
  * @returns The the array of comment objects that were read from the feed.
  */
@@ -207,7 +213,7 @@ export async function readCommentsInRange(
         if (result.status === "fulfilled") {
           dataPromises.push(bee.downloadData(result.value.reference.toUint8Array()));
         } else {
-          console.debug("Failed fetching feed update: ", result.reason);
+          console.debug("Failed to fetch feed update: ", result.reason);
         }
       });
     });
@@ -220,7 +226,7 @@ export async function readCommentsInRange(
             userComments.push(comment);
           }
         } else {
-          console.debug("Failed fetching comment data: ", result.reason);
+          console.debug("Failed to fetch comment data: ", result.reason);
         }
       });
     });
@@ -242,42 +248,35 @@ export async function readCommentsInRange(
  * @param options The options to use for reading the comment.
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
- * @throws StampError if no valid stamp is found.
  *
  * @returns The the comment object that was read from the feed.
  */
 export async function readSingleComment(index?: FeedIndex, options?: Options): Promise<SingleComment | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
 
-  const bee = new Bee(beeApiUrl || DEFAULT_BEE_URL);
+  const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const feedReader = bee.makeFeedReader(new Bytes(identifier).toUint8Array(), address);
-
   let userComment: UserComment;
-  let nextIndex: string | undefined = undefined;
-  let comment: any;
+  let nextIx: string | undefined = undefined;
   try {
-    if (index === undefined) {
-      const feedUpdate = await feedReader.download();
-      const { feedIndexNext, payload } = feedUpdate;
-      comment = payload.toJSON();
-      nextIndex = feedIndexNext?.toString();
-    } else {
-      const feedUpdate = await feedReader.downloadReference({ index });
-      const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
-      comment = data.toJSON();
-    }
+    const { objectdata: commentData, nextIndex } = await readFeedData(
+      bee,
+      new Bytes(identifier).toUint8Array(),
+      address,
+      index,
+    );
+    nextIx = nextIndex.toString();
 
-    if (isUserComment(comment)) {
-      userComment = comment;
+    if (isUserComment(commentData)) {
+      userComment = commentData;
     } else {
-      throw new Error(`Invalid comment format: ${JSON.stringify(comment)}`);
+      throw new Error(`Invalid comment format: ${JSON.stringify(commentData)}`);
     }
   } catch (error) {
     console.debug("Error while reading single comment: ", error);
     return undefined;
   }
 
-  return { comment: userComment, nextIndex: nextIndex };
+  return { comment: userComment, nextIndex: nextIx };
 }

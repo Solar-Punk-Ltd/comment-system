@@ -15,3 +15,9 @@ export class StampError extends Error {
     super(message);
   }
 }
+
+export class ReactionError extends Error {
+  public constructor(message: string) {
+    super(message);
+  }
+}
