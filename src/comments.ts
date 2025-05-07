@@ -126,22 +126,21 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
 
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const feedReader = bee.makeFeedReader(new Bytes(identifier).toUint8Array(), address);
-
   const userComments: UserComment[] = [];
 
   let nextIndex = 0n;
 
   while (true) {
     try {
-      const feedUpdate = await feedReader.downloadReference({ index: FeedIndex.fromBigInt(nextIndex++) });
+      const { objectdata: commentData } = await readFeedData(
+        bee,
+        new Bytes(identifier).toUint8Array(),
+        address,
+        FeedIndex.fromBigInt(nextIndex++),
+      );
 
-      const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
-
-      const comment = data.toJSON();
-
-      if (isUserComment(comment)) {
-        userComments.push(comment);
+      if (isUserComment(commentData)) {
+        userComments.push(commentData);
       }
     } catch (_) {
       break;
@@ -154,14 +153,20 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
 /**
  * Read nested comments in succession until the latest index of the feed with the given options.
  *
+ * @param start The start index of the range.
+ * @param end The end index of the range.
  * @param options The options to use for reading the comment.
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
  *
  * @returns The the array of nested comment objects that were read from the feed.
  */
-export async function readCommentsAsTree(options?: Options): Promise<CommentNode[]> {
-  const userComments = await readComments(options);
+export async function readCommentsAsTree(
+  start?: FeedIndex,
+  end?: FeedIndex,
+  options?: Options,
+): Promise<CommentNode[]> {
+  const userComments = await readCommentsInRange(start, end, options);
 
   return commentListToTree(userComments);
 }
@@ -208,7 +213,7 @@ export async function readCommentsInRange(
         if (result.status === "fulfilled") {
           dataPromises.push(bee.downloadData(result.value.reference.toUint8Array()));
         } else {
-          console.debug("Failed fetching feed update: ", result.reason);
+          console.debug("Failed to fetch feed update: ", result.reason);
         }
       });
     });
@@ -221,7 +226,7 @@ export async function readCommentsInRange(
             userComments.push(comment);
           }
         } else {
-          console.debug("Failed fetching comment data: ", result.reason);
+          console.debug("Failed to fetch comment data: ", result.reason);
         }
       });
     });

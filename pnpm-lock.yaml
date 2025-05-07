@@ -12,8 +12,8 @@ importers:
         specifier: ^9.1.1
         version: 9.1.1
       cafe-utility:
-        specifier: ^27.18.0
-        version: 27.18.0
+        specifier: ^28.0.0
+        version: 28.0.0
       ethers:
         specifier: ^6.13.6
         version: 6.13.6
@@ -1273,6 +1273,9 @@ packages:
 
   cafe-utility@27.18.0:
     resolution: {integrity: sha512-aGcLjeOmy8mw5d0eDIB2SrvbRswRSCUIZFIlmhS1u7RXGeHLge+FmCV6AvEbTVbuNN2P9ZKJMbB8osJJOich8g==}
+
+  cafe-utility@28.0.0:
+    resolution: {integrity: sha512-KyEOkNcMZtQet4BE4yufdimaQbV7c7VDseYyENjNdTP8qlla2t/Hvzh00NJ4nRgFZHm76t3hXmrDckm6Lcs+ow==}
 
   call-bind-apply-helpers@1.0.2:
     resolution: {integrity: sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==}
@@ -4721,6 +4724,8 @@ snapshots:
   builtin-status-codes@3.0.0: {}
 
   cafe-utility@27.18.0: {}
+
+  cafe-utility@28.0.0: {}
 
   call-bind-apply-helpers@1.0.2:
     dependencies:

@@ -12,7 +12,9 @@ npm i @solarpunkltd/comment-system
 
 ## Usage
 
-### Writing a Comment
+### Comments
+
+### Writing
 
 To write a comment to the Swarm network, use the writeComment or writeCommentToIndex functions:
 
@@ -56,7 +58,7 @@ writeCommentToIndex(comment, index, options)
 Function writeComment writes a comment to the next feed index. It needs to look up the latest feed index before writing.
 Function writeCommentToIndex writes a comment to the desired specific index.
 
-### Reading Comments
+### Reading
 
 To read comments from the Swarm network, use the readComments, readCommentsInRange or readSingleComment functions:
 
@@ -100,6 +102,58 @@ readSingleComment(index, options)
 Function readComments reads comments from index 0 until the latest found index, in succession. Function
 readCommentsInRange reads comments from the desired index range, parlelly. Function readSingleComment reads one single
 comment at the given index, if not provided it looks up and reads the latest comment.
+
+### Reactions
+
+### State udpate
+
+Every **Comment.messageId** identifies a feed topic for its reactions. Each topic can be determined the following way:
+
+```javascript
+const messageId = comment.message.messageId;
+const reactionFeedId = getReactionFeedId(messageId);
+```
+
+Each feed update stores the latest state of the reactions, so each feed entry is a reactions array containing the entire
+comment reaction state. This way only one fetch request is needed for getting the latest reactions. On the other hand,
+each new reaction requires a state change.
+
+In order to update the state of the reactions feed with a new reaction, the following utility function is provided:
+
+```javascript
+const reactionType = "like";
+const messageId = comment.message.messageId;
+const newReaction = {
+  user,
+  targetMessageId: messageId,
+  timestamp: Date.now(),
+  reactionType,
+};
+const updatedState = updateReactions(reactionState, newReaction, Action.ADD);
+```
+
+The state is updated (aggregated) according to the action defined. However clients can define their own way of
+aggregation, this function only serves as a default implementation. It returns **undefined** in case the state needs no
+update (e.g.: new reactin is to be added but is already present).
+
+### Writing and Reading
+
+Writing and reading reactions works in a similar way to the comments. Once the new reaction state and feedId is
+determined, it can be simply written as the latest feed update:
+
+```javascript
+const reactionState = await readReactionsWithIndex(undefined, {
+  identifier: reactionFeedId,
+  address: "your-signer-address",
+});
+
+await writeReactionsToIndex(updatedState, reactionState.nextIndex, {
+  stamp: "your-stamp-id",
+  identifier: reactionFeedId,
+  signer: "your-private-key",
+  address: "your-signer-address",
+});
+```
 
 ## Limitations
 
