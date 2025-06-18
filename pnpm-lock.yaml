@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@ethersphere/bee-js':
-        specifier: ^9.1.1
-        version: 9.1.1
+        specifier: ^9.4.0
+        version: 9.4.0
       cafe-utility:
         specifier: ^28.0.0
         version: 28.0.0
@@ -477,8 +477,8 @@ packages:
     resolution: {integrity: sha512-ZAoA40rNMPwSm+AeHpCq8STiNAwzWLJuP8Xv4CHIc9wv/PSuExjMrmjfYNj682vW0OOiZ1HKxzvjQr9XZIisQA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@ethersphere/bee-js@9.1.1':
-    resolution: {integrity: sha512-auDuO/9eXHCmGaJxCq/XWHz3hQYMhevEGWsjDo6fy9Eac44zg9Fw8cKhPUoZgZ6eoIkcVvXsL9YBVb6+esIC0Q==}
+  '@ethersphere/bee-js@9.4.0':
+    resolution: {integrity: sha512-mczUpjTM9hbmGw6V2o8mcWs6S6+e9qpFU99lhNh7SkI33FWC605hx4lnSqTPlsdMVau9jepJE4ItQqk9okEZrg==}
     engines: {bee: 2.4.0-390a402e, beeApiVersion: 7.2.0}
 
   '@humanfs/core@0.19.1':
@@ -1271,11 +1271,11 @@ packages:
   builtin-status-codes@3.0.0:
     resolution: {integrity: sha512-HpGFw18DgFWlncDfjTa2rcQ4W88O1mC8e8yZ2AvQY5KDaktSTwo+KRf6nHK6FRI5FyRyb/5T6+TSxfP7QyGsmQ==}
 
-  cafe-utility@27.18.0:
-    resolution: {integrity: sha512-aGcLjeOmy8mw5d0eDIB2SrvbRswRSCUIZFIlmhS1u7RXGeHLge+FmCV6AvEbTVbuNN2P9ZKJMbB8osJJOich8g==}
-
   cafe-utility@28.0.0:
     resolution: {integrity: sha512-KyEOkNcMZtQet4BE4yufdimaQbV7c7VDseYyENjNdTP8qlla2t/Hvzh00NJ4nRgFZHm76t3hXmrDckm6Lcs+ow==}
+
+  cafe-utility@28.2.0:
+    resolution: {integrity: sha512-EppX+Asq5R/3Ozn8eyPpDKVVb9q5hky3dK1gBIwIoR/LNPZJc16KoZQ9zqWNigwTLpfpg5Eyo09iq8M59moR3w==}
 
   call-bind-apply-helpers@1.0.2:
     resolution: {integrity: sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==}
@@ -3717,10 +3717,10 @@ snapshots:
       '@eslint/core': 0.13.0
       levn: 0.4.1
 
-  '@ethersphere/bee-js@9.1.1':
+  '@ethersphere/bee-js@9.4.0':
     dependencies:
       axios: 0.30.0
-      cafe-utility: 27.18.0
+      cafe-utility: 28.2.0
       isomorphic-ws: 4.0.1(ws@8.18.1)
       semver: 7.7.1
       ws: 8.18.1
@@ -4723,9 +4723,9 @@ snapshots:
 
   builtin-status-codes@3.0.0: {}
 
-  cafe-utility@27.18.0: {}
-
   cafe-utility@28.0.0: {}
+
+  cafe-utility@28.2.0: {}
 
   call-bind-apply-helpers@1.0.2:
     dependencies:

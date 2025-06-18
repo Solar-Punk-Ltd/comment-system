@@ -2,22 +2,30 @@ import { Topic } from "@ethersphere/bee-js";
 
 import { Action, Reaction } from "../model";
 
+import { getIdentifierFromUrl } from "./url";
 import { ReactionError } from "./errors";
 
 /**
- * Generates a reaction feed ID based on the provided target message ID.
+ * Generates a reaction feed ID based on the provided target comment feed ID.
  *
- * @param targetMessageId - The ID of the target message for which the reaction feed ID is generated.
- * @throws ReactionError - Throws an error if the `targetMessageId` is empty.
+ * @param identifier - The ID of the target comment feed for which the reaction feed ID is generated.
+ * @default getIdentifierFromUrl(window.location.href)
+ * @throws ReactionError - Throws an error if the `identifier` is empty.
  *
- * @returns A `Topic` object created from the target message ID.
+ * @returns A `Topic` object created from the target comment feed ID.
  */
-export const getReactionFeedId = (targetMessageId: string): Topic => {
-  if (targetMessageId.length === 0) {
-    throw new ReactionError("targetMessageId cannot be empty");
+export const getReactionFeedId = (identifier?: string): Topic => {
+  const idSuffix = "reactions";
+
+  if (!identifier) {
+    return Topic.fromString(getIdentifierFromUrl(window.location.href + idSuffix));
   }
 
-  return Topic.fromString(targetMessageId);
+  if (identifier.length === 0) {
+    throw new ReactionError("identifier cannot be empty");
+  }
+
+  return Topic.fromString(identifier + idSuffix);
 };
 
 /**
@@ -39,14 +47,15 @@ export const getReactionFeedId = (targetMessageId: string): Topic => {
  * @returns The updated list of reactions, or `undefined` if no changes were made.
  */
 export function updateReactions(reactions: Reaction[], newReaction: Reaction, action: Action): Reaction[] | undefined {
+  // TODO: rework update logic: now the feed is for all the reactions of all comments
   let existingReactionIx = -1;
   let editedReactionIx = -1;
   reactions.forEach((r, ix) => {
-    if (newReaction.targetMessageId !== r.targetMessageId) {
-      throw new ReactionError(
-        `Reactions have different targetMessageIds: ${r.targetMessageId} vs ${newReaction.targetMessageId}`,
-      );
-    }
+    // if (newReaction.targetMessageId !== r.targetMessageId) {
+    //   throw new ReactionError(
+    //     `Reactions have different targetMessageIds: ${r.targetMessageId} vs ${newReaction.targetMessageId}`,
+    //   );
+    // }
 
     const isSameUser = r.user.address === newReaction.user.address;
     if (isSameUser && r.reactionType === newReaction.reactionType) {
