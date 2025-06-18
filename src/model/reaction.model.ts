@@ -1,10 +1,9 @@
 import { User } from "./user.model";
 
-export enum Action {
-  ADD = "add",
-  REMOVE = "remove",
-  EDIT = "edit",
-}
+export type AddAction = "add";
+export type RemoveAction = "remove";
+export type EditAction = "edit";
+export type Action = AddAction | RemoveAction | EditAction;
 
 export interface Reaction {
   targetMessageId: string;

@@ -1,13 +1,17 @@
 import { Bee, Bytes, EthAddress, FeedIndex, PrivateKey, Reference, Topic, UploadResult } from "@ethersphere/bee-js";
 import { Optional } from "cafe-utility";
 
-import { Action, Reaction, readReactionsWithIndex, writeReactionsToIndex } from "../src/index";
-import { ReactionError } from "../src/utils/errors";
+import { Reaction, readReactionsWithIndex, writeReactionsToIndex } from "../src/index";
 import { getReactionFeedId, updateReactions } from "../src/utils/reactions";
 import { FeedPayloadResult, FeedReferenceResult } from "../src/utils/types";
 
 import { createInitMocks } from "./mockHelpers";
 import { MOCK_STAMP, mockReactions, SWARM_ZERO_ADDRESS, testIdentity, user1 } from "./utils";
+
+if (typeof globalThis.window === "undefined") {
+  // @ts-expect-error globalThis.window is not defined in Node.js
+  globalThis.window = { location: { href: "http://example.com" } };
+}
 
 describe("writeReactionsToIndex", () => {
   beforeEach(async () => {
@@ -211,32 +215,26 @@ describe("getReactionFeedId", () => {
     const feedId = getReactionFeedId("00").toString();
     expect(feedId).toBeDefined();
     expect(feedId).toHaveLength(64);
-    expect(feedId).toStrictEqual("e3f0ae350ee09657933cd8202a4dd563c5af941f8054e6d7191e3246be378290");
+    expect(feedId).toStrictEqual("aec8cdc0f4ef3ea23e10e2d8229e443283123122b0e0c2329d558d5689c117c1");
   });
 
-  it("should throw an error if targetMessageId is empty", () => {
-    expect(() => getReactionFeedId("")).toThrow(new ReactionError("targetMessageId cannot be empty"));
+  it("should use the default 'window.location.href + idSuffix' if the identifier is empty", () => {
+    const feedId = getReactionFeedId("").toString();
+    expect(feedId).toBeDefined();
+    expect(feedId).toHaveLength(64);
+    expect(feedId).toStrictEqual("7bd83c4a7165f908e18e34f5637dcd754f3015bca5b71491b358cecf4c7372ed");
+  });
+
+  it("should use the default 'window.location.href + idSuffix' if the identifier is undefined", () => {
+    const feedId = getReactionFeedId(undefined).toString();
+    expect(feedId).toBeDefined();
+    expect(feedId).toHaveLength(64);
+    expect(feedId).toStrictEqual("7bd83c4a7165f908e18e34f5637dcd754f3015bca5b71491b358cecf4c7372ed");
   });
 });
 
 describe("updateReactions", () => {
-  it("should throw an error if targetMessageId does not match", () => {
-    const newReaction: Reaction = {
-      user: { username: "Random", address: "1234".repeat(10) },
-      reactionType: "like",
-      targetMessageId: "011",
-      reactionId: "2",
-      timestamp: 2,
-    };
-
-    expect(() => updateReactions(mockReactions, newReaction, Action.ADD)).toThrow(
-      new ReactionError(
-        `Reactions have different targetMessageIds: ${mockReactions[0].targetMessageId} vs ${newReaction.targetMessageId}`,
-      ),
-    );
-  });
-
-  it("should ADD an existing reaction from a new user", () => {
+  it("should ADD a new reaction from a new user", () => {
     const newReaction: Reaction = {
       user: { username: "Random", address: "1234".repeat(10) },
       reactionType: "like",
@@ -245,23 +243,10 @@ describe("updateReactions", () => {
       timestamp: 2,
     };
 
-    const updated = updateReactions(mockReactions, newReaction, Action.ADD);
+    const updated = updateReactions(mockReactions, newReaction);
     expect(updated).toHaveLength(mockReactions.length + 1);
     expect(updated).toContainEqual(newReaction);
     expect(updated).toStrictEqual([...mockReactions, newReaction]);
-  });
-
-  it("should not ADD a duplicate reaction from the same user", () => {
-    const newReaction: Reaction = {
-      user: user1,
-      reactionType: "like",
-      targetMessageId: "00",
-      reactionId: "2",
-      timestamp: 2,
-    };
-
-    const updated = updateReactions(mockReactions, newReaction, Action.ADD);
-    expect(updated).toBeUndefined();
   });
 
   it("should ADD a different reaction from the same user", () => {
@@ -273,36 +258,10 @@ describe("updateReactions", () => {
       timestamp: 2,
     };
 
-    const updated = updateReactions(mockReactions, newReaction, Action.ADD);
+    const updated = updateReactions(mockReactions, newReaction);
     expect(updated).toHaveLength(mockReactions.length + 1);
     expect(updated).toContainEqual(newReaction);
     expect(updated).toStrictEqual([...mockReactions, newReaction]);
-  });
-
-  it("should not REMOVE a non-existing reaction from the same user", () => {
-    const newReaction: Reaction = {
-      user: user1,
-      reactionType: "banana",
-      targetMessageId: "00",
-      reactionId: "2",
-      timestamp: 2,
-    };
-
-    const updated = updateReactions(mockReactions, newReaction, Action.REMOVE);
-    expect(updated).toBeUndefined();
-  });
-
-  it("should not REMOVE an existing reaction from a different user", () => {
-    const newReaction: Reaction = {
-      user: user1,
-      reactionType: "dislike",
-      targetMessageId: "00",
-      reactionId: "2",
-      timestamp: 2,
-    };
-
-    const updated = updateReactions(mockReactions, newReaction, Action.REMOVE);
-    expect(updated).toBeUndefined();
   });
 
   it("should REMOVE an existing reaction from the same user", () => {
@@ -310,48 +269,14 @@ describe("updateReactions", () => {
       user: user1,
       reactionType: "like",
       targetMessageId: "00",
-      reactionId: "2",
-      timestamp: 2,
+      reactionId: "0",
+      timestamp: 1,
     };
 
-    const updated = updateReactions(mockReactions, newReaction, Action.REMOVE);
+    const updated = updateReactions(mockReactions, newReaction);
     expect(updated).toHaveLength(mockReactions.length - 1);
     expect(updated).toContainEqual(mockReactions[1]);
     expect(updated).not.toContainEqual(mockReactions[0]);
     expect(updated).toStrictEqual([mockReactions[1]]);
-  });
-
-  it("should EDIT and existing reaction from the same user", () => {
-    const newReaction: Reaction = { ...mockReactions[0], reactionType: "banana", timestamp: 2 };
-
-    const updated = updateReactions(mockReactions, newReaction, Action.EDIT);
-    expect(updated).toHaveLength(mockReactions.length);
-    expect(updated).toContainEqual(mockReactions[1]);
-    expect(updated).toContainEqual(newReaction);
-    expect(updated).not.toContainEqual(mockReactions[0]);
-    expect(updated).toStrictEqual([mockReactions[1], newReaction]);
-  });
-
-  it("should not EDIT a non-existing reaction from the same user", () => {
-    const newReaction: Reaction = { ...mockReactions[0], reactionId: "infinite" };
-
-    const updated = updateReactions(mockReactions, newReaction, Action.EDIT);
-    expect(updated).toBeUndefined();
-  });
-
-  it("should not EDIT an existing reaction from a different user", () => {
-    const newReaction: Reaction = { ...mockReactions[0], reactionId: mockReactions[1].reactionId };
-
-    const updated = updateReactions(mockReactions, newReaction, Action.EDIT);
-    expect(updated).toBeUndefined();
-  });
-
-  it("should not create duplicates with EDIT by editing an existing reaction of the same user", () => {
-    const newId = "2";
-    mockReactions.push({ ...mockReactions[0], reactionType: "banana", reactionId: newId });
-    const newReaction: Reaction = { ...mockReactions[0], reactionId: newId };
-
-    const updated = updateReactions(mockReactions, newReaction, Action.EDIT);
-    expect(updated).toBeUndefined();
   });
 });
