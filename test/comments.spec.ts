@@ -53,7 +53,7 @@ describe("Comments tests", () => {
         beeApiUrl: MOCK_SERVER_URL,
         address: testIdentity.address,
       });
-      expect(comments.map(c => c)).toStrictEqual([mockComments[0]]);
+      expect(comments?.map(c => c)).toStrictEqual([mockComments[0]]);
 
       assertAllIsDone();
     });
@@ -108,7 +108,7 @@ describe("Comments tests", () => {
         beeApiUrl: MOCK_SERVER_URL,
       });
 
-      expect(comments.map(c => c)).toStrictEqual(mockComments);
+      expect(comments?.map(c => c)).toStrictEqual(mockComments);
 
       assertAllIsDone();
     });

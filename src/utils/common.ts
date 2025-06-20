@@ -95,3 +95,12 @@ export async function writeFeedData(
   const feedWriter = bee.makeFeedWriter(topic, signer);
   await feedWriter.uploadReference(stamp, reference.toUint8Array(), index === undefined ? undefined : { index });
 }
+
+export function isNotFoundError(error: any): boolean {
+  return (
+    error.stack.includes("404") ||
+    error.message.includes("Not Found") ||
+    error.message.includes("404") ||
+    error.code === 404
+  );
+}
