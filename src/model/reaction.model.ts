@@ -9,7 +9,7 @@ export enum Action {
 export interface Reaction {
   targetMessageId: string;
   user: User;
-  reactionType: Action;
+  reactionType: string;
   timestamp: number;
   reactionId?: string;
 }
