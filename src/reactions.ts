@@ -2,10 +2,11 @@ import { Bee, FeedIndex } from "@ethersphere/bee-js";
 
 import { isReactionArray } from "./asserts/models.assert";
 import { Options } from "./model/options.model";
-import { Reaction, ReactionsWithIndex } from "./model/reaction.model";
+import { ReactionsWithIndex } from "./model/reaction.model";
 import { isNotFoundError, prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
 import { ReactionError } from "./utils/errors";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
+import { MessageData } from "./model";
 
 /**
  * Writes a list of reactions to a feed index using the Bee API.
@@ -20,7 +21,7 @@ import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/u
  * @returns A promise that resolves when the reactions have been successfully written to the feed or undefined in case of failure.
  */
 export async function writeReactionsToIndex(
-  reactions: Reaction[],
+  reactions: MessageData[],
   index?: FeedIndex,
   options?: Options,
 ): Promise<void> {

@@ -1,31 +1,56 @@
 import { NULL_ADDRESS, Reference } from "@ethersphere/bee-js";
 
-import { Reaction } from "../src";
-import { UserComment } from "../src/model/comment.model";
+import { MessageData, MessageType } from "../src/model/comment.model";
 
 export const SWARM_ZERO_ADDRESS = new Reference(NULL_ADDRESS);
 export const BEE_URL = "http://127.0.0.1:1633";
 export const MOCK_STAMP = "89fe1213a9b922425e3894159a04dc7adbadcf52d8d14a1005700f6cd691740d";
 export const user1 = { username: "Xyz", address: "8d3766440f0d7b949a5e32995d09619a7f86e632" };
 export const user2 = { username: "Abc", address: "1d3766440f0d7b949a5e32995d09619a7f86e632" };
-export const mockComments: UserComment[] = [
-  { user: user1, message: { text: "Nice post" }, timestamp: 0 },
-  { user: user2, message: { text: "Typo in lorem ipsum" }, timestamp: 1 },
-];
-export const mockReactions: Reaction[] = [
+export const mockComments: MessageData[] = [
   {
-    user: user1,
-    reactionType: "like",
-    targetMessageId: "00",
-    reactionId: "0",
+    username: user1.username,
+    message: "Nice post",
     timestamp: 0,
+    type: MessageType.TEXT,
+    id: "00",
+    index: 0,
+    chatTopic: "chat1",
+    address: user1.address,
   },
   {
-    user: user2,
-    reactionType: "dislike",
-    targetMessageId: "00",
-    reactionId: "1",
+    username: user2.username,
+    message: "Typo in lorem ipsum",
     timestamp: 1,
+    type: MessageType.TEXT,
+    id: "01",
+    index: 1,
+    chatTopic: "chat1",
+    address: user2.address,
+  },
+];
+export const mockReactions: MessageData[] = [
+  {
+    username: user1.username,
+    address: user1.address,
+    message: "like",
+    type: MessageType.REACTION,
+    targetMessageId: "00",
+    id: "0",
+    timestamp: 0,
+    chatTopic: "chat1",
+    index: 0,
+  },
+  {
+    username: user2.username,
+    address: user2.address,
+    message: "dislike",
+    type: MessageType.REACTION,
+    targetMessageId: "00",
+    id: "1",
+    timestamp: 1,
+    chatTopic: "chat1",
+    index: 1,
   },
 ];
 export const testIdentity = {

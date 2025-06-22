@@ -1,8 +1,9 @@
 import { Topic } from "@ethersphere/bee-js";
 
-import { Reaction } from "../model";
+import { MessageData } from "../model";
 
 import { getIdentifierFromUrl } from "./url";
+import { ReactionError } from "./errors";
 
 /**
  * Generates a reaction feed ID based on the provided target comment feed ID.
@@ -16,6 +17,10 @@ export const getReactionFeedId = (identifier?: string): Topic => {
   const idSuffix = "reactions";
 
   if (!identifier) {
+    if (typeof window === "undefined" || !window?.location?.href) {
+      throw new ReactionError("Cannot generate reaction feed ID without an identifier or window context");
+    }
+
     return Topic.fromString(getIdentifierFromUrl(window.location.href + idSuffix));
   }
 
@@ -23,7 +28,7 @@ export const getReactionFeedId = (identifier?: string): Topic => {
 };
 
 /**
- * Updates the list of reactions based on the provided action.
+ * Updates the list of reactions.
  *
  * @param reactions - The current list of reactions.
  * @param newReaction - The new reaction to be added, removed, or edited.
@@ -33,12 +38,12 @@ export const getReactionFeedId = (identifier?: string): Topic => {
  *
  * @returns The updated list of reactions, or `undefined` if no changes were made.
  */
-export function updateReactions(reactions: Reaction[], newReaction: Reaction): Reaction[] | undefined {
+export function updateReactions(reactions: MessageData[], newReaction: MessageData): MessageData[] | undefined {
   const ix = reactions.findIndex(
     r =>
-      r.user.address === newReaction.user.address &&
+      r.address === newReaction.address &&
       newReaction.targetMessageId === r.targetMessageId &&
-      r.reactionType === newReaction.reactionType,
+      r.message === newReaction.message,
   );
 
   if (ix < 0) {

@@ -1,9 +1,9 @@
 import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
 import { Types } from "cafe-utility";
-import { v4 as uuid } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 
 import { isUserComment } from "./asserts/models.assert";
-import { Comment, CommentNode, SingleComment, UserComment } from "./model/comment.model";
+import { CommentNode, SingleComment, MessageData } from "./model/comment.model";
 import { Options } from "./model/options.model";
 import { isNotFoundError, prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
 import { FeedReferenceResult } from "./utils/types";
@@ -21,22 +21,17 @@ import { commentListToTree } from "./utils";
  *
  * @returns The comment object that was written to the feed or undefined in case of failure.
  */
-export async function writeComment(comment: UserComment, options?: Options): Promise<UserComment | undefined> {
+export async function writeComment(comment: MessageData, options?: Options): Promise<MessageData | undefined> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
 
   const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier);
 
   const bee = new Bee(beeApiUrl);
 
-  const commentObject: Comment = {
-    ...comment.message,
-    messageId: comment.message.messageId || uuid(),
-  };
-
-  const userCommentObj: UserComment = {
-    message: commentObject,
+  const userCommentObj: MessageData = {
+    ...comment,
+    id: comment.id || uuidv4(),
     timestamp: Types.isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
-    user: comment.user,
   };
 
   try {
@@ -69,10 +64,10 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
  * @returns The comment object that was written to the feed or undefined in case of failure.
  */
 export async function writeCommentToIndex(
-  comment: UserComment,
+  comment: MessageData,
   index?: FeedIndex,
   options?: Options,
-): Promise<UserComment | undefined> {
+): Promise<MessageData | undefined> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
   if (index === undefined) {
     console.info("No index defined - writing comment to the latest index");
@@ -80,26 +75,13 @@ export async function writeCommentToIndex(
   }
 
   const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier);
-  console.log(
-    "bagoy writeCommentToIndex identifier",
-    identifier,
-    "address",
-    signer.publicKey().address().toString(),
-    "index",
-    index.toString(),
-  );
 
   const bee = new Bee(beeApiUrl);
 
-  const commentObject: Comment = {
-    ...comment.message,
-    messageId: comment.message.messageId || uuid(),
-  };
-
-  const userCommentObj: UserComment = {
-    message: commentObject,
+  const userCommentObj: MessageData = {
+    ...comment,
+    id: comment.id || uuidv4(),
     timestamp: Types.isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
-    user: comment.user,
   };
 
   try {
@@ -128,14 +110,14 @@ export async function writeCommentToIndex(
  *
  * @returns The the array of comment objects that were read from the feed or undefined in case of failure.
  */
-export async function readComments(options?: Options): Promise<UserComment[] | undefined> {
+export async function readComments(options?: Options): Promise<MessageData[] | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
 
   const bee = new Bee(beeApiUrl);
 
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const userComments: UserComment[] = [];
+  const userComments: MessageData[] = [];
 
   let nextIndex = 0n;
 
@@ -204,7 +186,7 @@ export async function readCommentsInRange(
   start?: FeedIndex,
   end?: FeedIndex,
   options?: Options,
-): Promise<UserComment[] | undefined> {
+): Promise<MessageData[] | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
   if (start === undefined || end === undefined) {
     console.info("No start or end index - reading comments synchronously");
@@ -216,7 +198,7 @@ export async function readCommentsInRange(
 
   const feedReader = bee.makeFeedReader(new Bytes(identifier).toUint8Array(), address);
 
-  const userComments: UserComment[] = [];
+  const userComments: MessageData[] = [];
   const actualStart = end > start ? start.toBigInt() : end.toBigInt();
   const feedUpdatePromises: Promise<FeedReferenceResult>[] = [];
   let i = actualStart;
@@ -278,14 +260,6 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
 
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
-  console.log(
-    "bagoy readSingleComment identifier",
-    identifier,
-    "address",
-    address.toString(),
-    "index",
-    index?.toString(),
-  );
 
   const singleComment: SingleComment = {} as SingleComment;
   try {
