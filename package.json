@@ -1,6 +1,6 @@
 {
   "name": "@solarpunkltd/comment-system",
-  "version": "1.7.9",
+  "version": "1.8.0",
   "description": "A library for writing and reading comments from the Swarm network.",
   "main": "dist/index.umd.js",
   "module": "dist/index.es.js",
@@ -12,7 +12,8 @@
     "build:node": "tsc -p tsconfig.json",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist/types",
     "test": "jest --config=jest.config.ts --runInBand --verbose",
-    "clear_jest": "jest --clearCache",
+    "test:coverage": "jest --coverage",
+    "test:clear": "jest --clearCache",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write .",

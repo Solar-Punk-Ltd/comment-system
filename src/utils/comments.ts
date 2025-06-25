@@ -13,7 +13,7 @@ export function findCommentNode(nodes: CommentNode[], id: string): CommentNode |
   for (let i = 0; i < nodes.length; i++) {
     node = nodes[i];
 
-    if (node.comment.id === id) {
+    if (node.message.id === id) {
       return node;
     }
 
@@ -42,7 +42,7 @@ export function commentListToTree(comments: MessageData[]): CommentNode[] {
 
   comments.map(comment => {
     const { targetMessageId } = comment;
-    const node = { comment, replies: [] };
+    const node = { message: comment, replies: [] };
 
     if (!targetMessageId) {
       nodes.push(node);

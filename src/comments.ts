@@ -3,7 +3,7 @@ import { Types } from "cafe-utility";
 import { v4 as uuidv4 } from "uuid";
 
 import { isUserComment } from "./asserts/models.assert";
-import { CommentNode, SingleComment, MessageData } from "./model/comment.model";
+import { CommentNode, SingleMessage, MessageData } from "./model/comment.model";
 import { Options } from "./model/options.model";
 import { isNotFoundError, prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
 import { FeedReferenceResult } from "./utils/types";
@@ -45,7 +45,7 @@ export async function writeComment(comment: MessageData, options?: Options): Pro
 
     return userCommentObj;
   } catch (err) {
-    console.info("Error while writing comment: ", err);
+    console.error("Error while writing comment: ", err);
     return;
   }
 }
@@ -70,7 +70,7 @@ export async function writeCommentToIndex(
 ): Promise<MessageData | undefined> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
   if (index === undefined) {
-    console.info("No index defined - writing comment to the latest index");
+    console.debug("No index defined - writing comment to the latest index");
     return writeComment(comment, options);
   }
 
@@ -96,7 +96,7 @@ export async function writeCommentToIndex(
 
     return userCommentObj;
   } catch (err) {
-    console.info(`Error while writing comment: ${err}`);
+    console.error(`Error while writing comment: ${err}`);
     return;
   }
 }
@@ -189,7 +189,7 @@ export async function readCommentsInRange(
 ): Promise<MessageData[] | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
   if (start === undefined || end === undefined) {
-    console.info("No start or end index - reading comments synchronously");
+    console.debug("No start or end index - reading comments synchronously");
     return await readComments(options);
   }
 
@@ -213,7 +213,7 @@ export async function readCommentsInRange(
         if (result.status === "fulfilled") {
           dataPromises.push(bee.downloadData(result.value.reference.toUint8Array()));
         } else {
-          console.info("Failed to fetch feed update: ", result.reason);
+          console.debug("Failed to fetch feed update: ", result.reason);
         }
       });
     });
@@ -226,17 +226,17 @@ export async function readCommentsInRange(
             userComments.push(comment);
           }
         } else {
-          console.info("Failed to fetch comment data: ", result.reason);
+          console.debug("Failed to fetch comment data: ", result.reason);
         }
       });
     });
   } catch (err) {
     if (!isNotFoundError(err)) {
-      console.info(`Error while reading comments from ${start.toString()} to ${end.toString()}: ${err}`);
+      console.error(`Error while reading comments from ${start.toString()} to ${end.toString()}: ${err}`);
       return;
     }
 
-    console.info(`No comment found at index ${i.toString()}`);
+    console.debug(`No comment found at index ${i.toString()}`);
   }
 
   userComments.sort((a, b) => a.timestamp - b.timestamp);
@@ -255,34 +255,29 @@ export async function readCommentsInRange(
  *
  * @returns The the comment object that was read from the feed or undefined in case of failure.
  */
-export async function readSingleComment(index?: FeedIndex, options?: Options): Promise<SingleComment | undefined> {
+export async function readSingleComment(index?: FeedIndex, options?: Options): Promise<SingleMessage | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
 
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const singleComment: SingleComment = {} as SingleComment;
+  const singleComment: SingleMessage = {} as SingleMessage;
   try {
-    const { objectdata: commentData, nextIndex } = await readFeedData(
-      bee,
-      new Bytes(identifier).toUint8Array(),
-      address,
-      index,
-    );
+    const { objectdata, nextIndex } = await readFeedData(bee, new Bytes(identifier).toUint8Array(), address, index);
 
-    if (isUserComment(commentData)) {
-      singleComment.comment = commentData;
+    if (isUserComment(objectdata)) {
+      singleComment.message = objectdata;
       singleComment.nextIndex = nextIndex.toString();
     } else {
-      throw new Error(`Invalid comment format: ${JSON.stringify(commentData)}`);
+      throw new Error(`Invalid comment format: ${JSON.stringify(objectdata)}`);
     }
   } catch (err) {
     if (!isNotFoundError(err)) {
-      console.info(`Error while reading single comment at index ${index?.toString()}: ${err}`);
+      console.error(`Error while reading single comment at index ${index?.toString()}: ${err}`);
       return;
     }
 
-    console.info(`No comment found at index ${index?.toString()}`);
+    console.debug(`No comment found at index ${index?.toString()}`);
   }
 
   return singleComment;

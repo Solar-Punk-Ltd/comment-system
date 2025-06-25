@@ -2,11 +2,10 @@ import { Bee, FeedIndex } from "@ethersphere/bee-js";
 
 import { isReactionArray } from "./asserts/models.assert";
 import { Options } from "./model/options.model";
-import { ReactionsWithIndex } from "./model/reaction.model";
 import { isNotFoundError, prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
 import { ReactionError } from "./utils/errors";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
-import { MessageData } from "./model";
+import { MessageData, MessageWithIndex } from "./model";
 
 /**
  * Writes a list of reactions to a feed index using the Bee API.
@@ -51,18 +50,19 @@ export async function writeReactionsToIndex(
 export async function readReactionsWithIndex(
   index?: FeedIndex,
   options?: Options,
-): Promise<ReactionsWithIndex | undefined> {
+): Promise<MessageWithIndex | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
 
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const reactionsWithIndex: ReactionsWithIndex = {} as ReactionsWithIndex;
+  // return with index = -1 instead of undefined
+  const reactionsWithIndex: MessageWithIndex = {} as MessageWithIndex;
   try {
     const { objectdata: reactionData, nextIndex } = await readFeedData(bee, identifier, address, index);
 
     if (isReactionArray(reactionData)) {
-      reactionsWithIndex.reactions = reactionData;
+      reactionsWithIndex.messages = reactionData;
       reactionsWithIndex.nextIndex = nextIndex.toString();
     } else {
       throw new ReactionError(`Invalid reactions format: ${JSON.stringify(reactionData)}`);
@@ -72,6 +72,8 @@ export async function readReactionsWithIndex(
       console.error(`Error while reading reactions at index ${index?.toString()}:`, err);
       return;
     }
+
+    console.debug(`No reaction found at index ${index?.toString()}`);
   }
 
   return reactionsWithIndex;

@@ -1,15 +1,6 @@
 import { Types } from "cafe-utility";
 
 import { MessageData, MessageType } from "../model/comment.model";
-import { Reaction } from "../model/reaction.model";
-import { User } from "../model/user.model";
-
-export function isUser(obj: unknown): obj is User {
-  const user = (obj || {}) as User;
-  const isValidAddress = user.address ? Types.isString(user.address) : true;
-
-  return Boolean(Types.isStrictlyObject(user) && Types.isString(user.username) && isValidAddress);
-}
 
 export function isMessageData(obj: unknown): obj is MessageData {
   const {
@@ -52,26 +43,13 @@ export function isMessageData(obj: unknown): obj is MessageData {
 }
 
 export function isUserComment(obj: unknown): obj is MessageData {
-  return isMessageData(obj) && obj.type === MessageType.TEXT;
+  return isMessageData(obj) && (obj.type === MessageType.TEXT || obj.type === MessageType.THREAD);
 }
 
 export function isReaction(obj: unknown): obj is MessageData {
   return isMessageData(obj) && obj.type === MessageType.REACTION;
 }
 
-export function isReactionLegacy(obj: unknown): obj is Reaction {
-  const { user, reactionId, reactionType, timestamp, targetMessageId } = (obj || {}) as Reaction;
-  const isValidReactionId = reactionId ? Types.isString(reactionId) : true;
-
-  return Boolean(
-    isUser(user) &&
-      Types.isString(targetMessageId) &&
-      Types.isString(reactionType) &&
-      Types.isNumber(timestamp) &&
-      isValidReactionId,
-  );
-}
-
-export function isReactionArray(obj: unknown): obj is Reaction[] {
+export function isReactionArray(obj: unknown): obj is MessageData[] {
   return Boolean(Array.isArray(obj) && obj.every(r => isReaction(r)));
 }

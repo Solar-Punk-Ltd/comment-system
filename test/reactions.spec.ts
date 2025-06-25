@@ -170,7 +170,7 @@ describe("Reactions tests", () => {
         address: testIdentity.address,
       });
       expect(reactions).toBeDefined();
-      expect(reactions?.reactions).toStrictEqual(mockReactions);
+      expect(reactions?.messages).toStrictEqual(mockReactions);
       expect(reactions?.nextIndex).toStrictEqual(FeedIndex.fromBigInt(newIndex.toBigInt() + 1n).toString());
 
       expect(downloadReferenceSpy).toHaveBeenCalledWith({ index: newIndex });
@@ -200,7 +200,7 @@ describe("Reactions tests", () => {
         address: testIdentity.address,
       });
       expect(reactions).toBeDefined();
-      expect(reactions?.reactions).toStrictEqual(mockReactions);
+      expect(reactions?.messages).toStrictEqual(mockReactions);
       expect(reactions?.nextIndex).toStrictEqual(nextIndex.toString());
 
       expect(makeFeedReaderSpy).toHaveBeenCalledWith(reactionFeedId, testIdentity.address);
