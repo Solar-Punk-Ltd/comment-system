@@ -28,6 +28,21 @@ export const getReactionFeedId = (identifier?: string): Topic => {
 };
 
 /**
+ * Generates a reaction feed ID based on the provided target comment feed ID.
+ *
+ * @param identifier - The ID of the target comment feed for which the reaction feed ID is generated.
+ * @default getIdentifierFromUrl(window.location.href)
+ *
+ * @returns A `Topic` object created from the target comment feed ID.
+ */
+export const getReactionFeedIdForComment = (targetMessageId: string): Topic => {
+  if (targetMessageId.length === 0) {
+    throw new ReactionError("targetMessageId cannot be empty");
+  }
+
+  return Topic.fromString(targetMessageId);
+};
+/**
  * Updates the list of reactions.
  *
  * @param reactions - The current list of reactions.

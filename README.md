@@ -1,6 +1,6 @@
 # Swarm Comment System Library
 
-A library for writing and reading comments from the Swarm network.
+A library for writing and reading comments from the Swarm network utilizing the concept of graffiti feeds.
 
 ## Installation
 
@@ -19,15 +19,18 @@ npm i @solarpunkltd/comment-system
 To write a comment to the Swarm network, use the writeComment or writeCommentToIndex functions:
 
 ```javascript
-import { writeComment, writeCommentToIndex } from "@solarpunkltd/comment-system";
+import { writeComment, writeCommentToIndex, MessageType } from "@solarpunkltd/comment-system";
 
 const comment = {
-  message: {
-    text: "This is a comment",
-    messageId: "unique-message-id",
-  },
-  timestamp: Date.now(),
+  id: "unique-comment-id",
+  type: MessageType.TEXT,
+  message: "This is a comment",
   username: "user123",
+  address: "user-address",
+  timestamp: Date.now(),
+  index: 0,
+  chatTopic: "your-feed-topic",
+  targetMessageId: "parent-message-id",
 };
 
 const options = {
@@ -63,7 +66,7 @@ Function writeCommentToIndex writes a comment to the desired specific index.
 To read comments from the Swarm network, use the readComments, readCommentsInRange or readSingleComment functions:
 
 ```javascript
-import { readComments, readCommentsInRange, readSingleComment } from "swarm-comment-system";
+import { readComments, readCommentsInRange, readSingleComment } from "@solarpunkltd/comment-system";
 
 const options = {
   identifier: "your-identifier",
@@ -100,18 +103,24 @@ readSingleComment(index, options)
 ```
 
 Function readComments reads comments from index 0 until the latest found index, in succession. Function
-readCommentsInRange reads comments from the desired index range, parlelly. Function readSingleComment reads one single
-comment at the given index, if not provided it looks up and reads the latest comment.
+readCommentsInRange reads comments from the desired index range, in parallel. Function readSingleComment reads one
+single comment at the given index, if not provided it looks up and reads the latest comment.
 
 ### Reactions
 
-### State udpate
+### State update
 
-Every **Comment.messageId** identifies a feed topic for its reactions. Each topic can be determined the following way:
+There are multiple ways of handling reactions for the comments/messages, providing below 2 examples. Every
+**Comment.id** identifies a feed topic for its reactions. Or maintaing a separate feed, derived from the original feed
+topic. While the first method keeps the reaction state separately for each comment as a new feed (smaller sates but many
+requests - bandwidth issues ), the latter stores the whole reaction state (big state that can be split up but only one
+poll reqeust needed). Each topic can be determined the following way:
 
 ```javascript
-const messageId = comment.message.messageId;
-const reactionFeedId = getReactionFeedId(messageId);
+import { getReactionFeedId } from "@solarpunkltd/comment-system";
+
+const reactionFeedId = getReactionFeedId("comment-feed-identifier");
+const reactionFeedIdForComment = getReactionFeedIdForComment(comment.id);
 ```
 
 Each feed update stores the latest state of the reactions, so each feed entry is a reactions array containing the entire
@@ -121,20 +130,26 @@ each new reaction requires a state change.
 In order to update the state of the reactions feed with a new reaction, the following utility function is provided:
 
 ```javascript
-const reactionType = "like";
-const messageId = comment.message.messageId;
+import { updateReactions, MessageType } from "@solarpunkltd/comment-system";
+
+const commentId = comment.id;
 const newReaction = {
-  user,
-  targetMessageId: messageId,
+  id: "reaction-id",
+  type: MessageType.REACTION,
+  message: "like",
+  username: "user123",
+  address: "user-address",
   timestamp: Date.now(),
-  reactionType,
+  index: 0,
+  chatTopic: "reaction-topic",
+  targetMessageId: commentId,
 };
-const updatedState = updateReactions(reactionState, newReaction, Action.ADD);
+const updatedState = updateReactions(reactionState, newReaction);
 ```
 
-The state is updated (aggregated) according to the action defined. However clients can define their own way of
-aggregation, this function only serves as a default implementation. It returns **undefined** in case the state needs no
-update (e.g.: new reactin is to be added but is already present).
+The state is updated (aggregated) according to the reaction logic. If a reaction from the same user and type already
+exists, it will be removed (toggle behavior). If it doesn't exist, it will be added. The function returns **undefined**
+in case the state needs no update.
 
 ### Writing and Reading
 
@@ -142,12 +157,15 @@ Writing and reading reactions works in a similar way to the comments. Once the n
 determined, it can be simply written as the latest feed update:
 
 ```javascript
+import { writeReactionsToIndex, readReactionsWithIndex, getReactionFeedId } from "@solarpunkltd/comment-system";
+
+const reactionFeedId = getReactionFeedId(commentId);
 const reactionState = await readReactionsWithIndex(undefined, {
   identifier: reactionFeedId,
   address: "your-signer-address",
 });
 
-await writeReactionsToIndex(updatedState, reactionState.nextIndex, {
+await writeReactionsToIndex(updatedState, reactionState?.nextIndex, {
   stamp: "your-stamp-id",
   identifier: reactionFeedId,
   signer: "your-private-key",
@@ -155,14 +173,86 @@ await writeReactionsToIndex(updatedState, reactionState.nextIndex, {
 });
 ```
 
+## Types
+
+### MessageData
+
+The main interface for comments and reactions, complying with the interface at
+[swarm-chat-js](https://github.com/Solar-Punk-Ltd/swarm-chat-js)
+
+```typescript
+interface MessageData {
+  id: string;
+  type: MessageType; // TEXT, THREAD, or REACTION
+  message: string;
+  username: string;
+  address: string;
+  timestamp: number;
+  index: number;
+  chatTopic: string; // For the feed indentifier
+  targetMessageId?: string; // For replies and reactions
+  userTopic?: string; // These can be omitted if not needed
+  signature?: string; // For user verification
+  flagged?: boolean; // For UI filtering
+  reason?: string;
+}
+```
+
+### MessageType
+
+Enum defining the type of message:
+
+```typescript
+enum MessageType {
+  TEXT = "text",
+  THREAD = "thread",
+  REACTION = "reaction",
+}
+```
+
+### Options
+
+Configuration options for reading and writing:
+
+```typescript
+interface Options {
+  stamp?: string;
+  identifier?: string;
+  beeApiUrl?: string;
+  signer?: PrivateKey;
+  address?: string;
+}
+```
+
+## Functions
+
+### Comments
+
+- `writeComment(comment: MessageData, options?: Options): Promise<MessageData | undefined>`
+- `writeCommentToIndex(comment: MessageData, index?: FeedIndex, options?: Options): Promise<MessageData | undefined>`
+- `readComments(options?: Options): Promise<MessageData[] | undefined>`
+- `readCommentsInRange(start?: FeedIndex, end?: FeedIndex, options?: Options): Promise<MessageData[] | undefined>`
+- `readCommentsAsTree(start?: FeedIndex, end?: FeedIndex, options?: Options): Promise<CommentNode[] | undefined>`
+- `readSingleComment(index?: FeedIndex, options?: Options): Promise<SingleMessage | undefined>`
+
+### Reactions
+
+- `writeReactionsToIndex(reactions: MessageData[], index?: FeedIndex, options?: Options): Promise<void>`
+- `readReactionsWithIndex(index?: FeedIndex, options?: Options): Promise<MessageWithIndex | undefined>`
+- `getReactionFeedId(identifier?: string): Topic`
+- `updateReactions(reactions: MessageData[], newReaction: MessageData): MessageData[] | undefined`
+
 ## Limitations
 
 Writing to a feed index that is already taken does not result in an error, therefore reading back the comment at the
 expected index is necessary as a verification of success.
 
-## Example react-app
+## Examples
 
-See https://github.com/Solar-Punk-Ltd/comment-system-ui
+See: [comment-system-ui](https://github.com/Solar-Punk-Ltd/comment-system-ui) as a basic example.
+
+[swarm-chat-react-example](https://github.com/Solar-Punk-Ltd/swarm-chat-react-example) as a complete chat-like/
+comment-feed app.
 
 ## License
 

@@ -4,7 +4,7 @@ import { Optional } from "cafe-utility";
 import { MessageData, readReactionsWithIndex, writeReactionsToIndex } from "../src/index";
 import { MessageType } from "../src/model/comment.model";
 import { ReactionError } from "../src/utils/errors";
-import { getReactionFeedId, updateReactions } from "../src/utils/reactions";
+import { getReactionFeedId, getReactionFeedIdForComment, updateReactions } from "../src/utils/reactions";
 import { FeedPayloadResult, FeedReferenceResult } from "../src/utils/types";
 
 import { createInitMocks } from "./mockHelpers";
@@ -237,6 +237,19 @@ describe("Reactions tests", () => {
       expect(feedId).toBeDefined();
       expect(feedId).toHaveLength(64);
       expect(feedId).toStrictEqual("7bd83c4a7165f908e18e34f5637dcd754f3015bca5b71491b358cecf4c7372ed");
+    });
+  });
+
+  describe("getReactionFeedIdForComment", () => {
+    it("should get the correct reaction feed ID", () => {
+      const feedId = getReactionFeedIdForComment("00").toString();
+      expect(feedId).toBeDefined();
+      expect(feedId).toHaveLength(64);
+      expect(feedId).toStrictEqual("e3f0ae350ee09657933cd8202a4dd563c5af941f8054e6d7191e3246be378290");
+    });
+
+    it("should throw an error if targetMessageId is empty", () => {
+      expect(() => getReactionFeedIdForComment("")).toThrow(new ReactionError("targetMessageId cannot be empty"));
     });
   });
 
