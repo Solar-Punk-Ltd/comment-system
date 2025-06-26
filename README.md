@@ -242,6 +242,21 @@ interface Options {
 - `getReactionFeedId(identifier?: string): Topic`
 - `updateReactions(reactions: MessageData[], newReaction: MessageData): MessageData[] | undefined`
 
+### Utilities
+
+- `getPrivateKeyFromIdentifier(identifier: string): PrivateKey` - Generates a private key from a given identifier string
+
+## Utilities
+
+### Key Generation
+
+```javascript
+import { getPrivateKeyFromIdentifier } from "@solarpunkltd/comment-system";
+
+const identifier = "my-unique-identifier";
+const privateKey = getPrivateKeyFromIdentifier(identifier);
+```
+
 ## Limitations
 
 Writing to a feed index that is already taken does not result in an error, therefore reading back the comment at the
