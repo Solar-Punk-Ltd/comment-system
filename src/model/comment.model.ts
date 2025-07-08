@@ -1,32 +1,35 @@
-import { User } from "./user.model";
+export enum MessageType {
+  TEXT = "text",
+  THREAD = "thread",
+  REACTION = "reaction",
+}
 
-export interface Comment {
-  text: string;
-  messageId?: string;
-  threadId?: string;
-  parent?: string;
+export interface MessageData {
+  id: string;
+  type: MessageType;
+  message: string;
+  username: string;
+  address: string;
+  timestamp: number;
+  index: number;
+  topic: string;
+  targetMessageId?: string;
+  signature?: string;
   flagged?: boolean;
   reason?: string;
 }
 
-// TODO: user probably not compatible with legacy objs.
-export interface UserComment {
-  message: Comment;
-  timestamp: number;
-  user: User;
-}
-
 export interface CommentNode {
-  comment: UserComment;
+  message: MessageData;
   replies: CommentNode[];
 }
 
-export interface SingleComment {
-  comment: UserComment;
+export interface SingleMessage {
+  message: MessageData;
   nextIndex?: string;
 }
 
-export interface CommentsWithIndex {
-  comments: UserComment[];
+export interface MessageWithIndex {
+  messages: MessageData[];
   nextIndex: string;
 }

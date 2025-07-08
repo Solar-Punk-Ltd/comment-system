@@ -1,4 +1,4 @@
-import { CommentNode, UserComment } from "../model/comment.model";
+import { CommentNode, MessageData } from "../model/comment.model";
 
 /**
  * Recursively searches for a comment node with the specified ID within a tree of comment nodes.
@@ -13,7 +13,7 @@ export function findCommentNode(nodes: CommentNode[], id: string): CommentNode |
   for (let i = 0; i < nodes.length; i++) {
     node = nodes[i];
 
-    if (node.comment.message.messageId === id) {
+    if (node.message.id === id) {
       return node;
     }
 
@@ -37,19 +37,19 @@ export function findCommentNode(nodes: CommentNode[], id: string): CommentNode |
  * If a comment has a `threadId`, it is treated as a reply and added to the `replies` array
  * of the corresponding parent comment node. Comments without a `threadId` are treated as root nodes.
  */
-export function commentListToTree(comments: UserComment[]): CommentNode[] {
+export function commentListToTree(comments: MessageData[]): CommentNode[] {
   const nodes: CommentNode[] = [];
 
   comments.map(comment => {
-    const { threadId } = comment.message;
-    const node = { comment, replies: [] };
+    const { targetMessageId } = comment;
+    const node = { message: comment, replies: [] };
 
-    if (!threadId) {
+    if (!targetMessageId) {
       nodes.push(node);
       return node;
     }
 
-    const parentNode = findCommentNode(nodes, threadId);
+    const parentNode = findCommentNode(nodes, targetMessageId);
 
     if (parentNode) {
       parentNode.replies.push(node);

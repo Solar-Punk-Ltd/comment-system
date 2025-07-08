@@ -66,21 +66,14 @@ export async function readFeedData(
 ): Promise<FeedData> {
   const feedReader = bee.makeFeedReader(identifier, address);
 
-  let objectdata: any;
-  let nextIndex: string;
-  if (index === undefined) {
-    const feedUpdate = await feedReader.download();
-    const { feedIndexNext, payload } = feedUpdate;
-    objectdata = payload.toJSON();
-    nextIndex = feedIndexNext?.toString() || FeedIndex.fromBigInt(0n).toString();
-  } else {
-    const feedUpdate = await feedReader.downloadReference({ index });
-    nextIndex = FeedIndex.fromBigInt(index.toBigInt() + 1n).toString();
-    const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
-    objectdata = data.toJSON();
-  }
+  const feedUpdate = await feedReader.downloadReference(index ? { index } : undefined);
+  const nextIndex =
+    feedUpdate.feedIndexNext !== undefined
+      ? feedUpdate.feedIndexNext.toString()
+      : FeedIndex.fromBigInt(feedUpdate.feedIndex.toBigInt() + 1n).toString();
+  const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
 
-  return { objectdata, nextIndex };
+  return { objectdata: data.toJSON(), nextIndex };
 }
 
 export async function writeFeedData(
@@ -94,4 +87,13 @@ export async function writeFeedData(
   const { reference } = await bee.uploadData(stamp, data);
   const feedWriter = bee.makeFeedWriter(topic, signer);
   await feedWriter.uploadReference(stamp, reference.toUint8Array(), index === undefined ? undefined : { index });
+}
+
+export function isNotFoundError(error: any): boolean {
+  return (
+    error.stack.includes("404") ||
+    error.message.includes("Not Found") ||
+    error.message.includes("404") ||
+    error.code === 404
+  );
 }

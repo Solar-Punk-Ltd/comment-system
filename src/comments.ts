@@ -1,11 +1,11 @@
 import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
 import { Types } from "cafe-utility";
-import { v4 as uuid } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 
 import { isUserComment } from "./asserts/models.assert";
-import { Comment, CommentNode, SingleComment, UserComment } from "./model/comment.model";
+import { CommentNode, SingleMessage, MessageData } from "./model/comment.model";
 import { Options } from "./model/options.model";
-import { prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
+import { isNotFoundError, prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
 import { FeedReferenceResult } from "./utils/types";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
 import { commentListToTree } from "./utils";
@@ -19,24 +19,19 @@ import { commentListToTree } from "./utils";
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
  * @throws StampError if no valid stamp is found.
  *
- * @returns The comment object that was written to the feed.
+ * @returns The comment object that was written to the feed or undefined in case of failure.
  */
-export async function writeComment(comment: UserComment, options?: Options): Promise<UserComment> {
+export async function writeComment(comment: MessageData, options?: Options): Promise<MessageData | undefined> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
 
   const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier);
 
   const bee = new Bee(beeApiUrl);
 
-  const commentObject: Comment = {
-    ...comment.message,
-    messageId: comment.message.messageId || uuid(),
-  };
-
-  const userCommentObj: UserComment = {
-    message: commentObject,
+  const userCommentObj: MessageData = {
+    ...comment,
+    id: comment.id || uuidv4(),
     timestamp: Types.isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
-    user: comment.user,
   };
 
   try {
@@ -49,9 +44,9 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
     );
 
     return userCommentObj;
-  } catch (error) {
-    console.debug("Error while writing comment: ", error);
-    return {} as UserComment;
+  } catch (err) {
+    console.error("Error while writing comment: ", err);
+    return;
   }
 }
 
@@ -66,13 +61,13 @@ export async function writeComment(comment: UserComment, options?: Options): Pro
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
  * @throws StampError if no valid stamp is found.
  *
- * @returns The comment object that was written to the feed.
+ * @returns The comment object that was written to the feed or undefined in case of failure.
  */
 export async function writeCommentToIndex(
-  comment: UserComment,
+  comment: MessageData,
   index?: FeedIndex,
   options?: Options,
-): Promise<UserComment> {
+): Promise<MessageData | undefined> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
   if (index === undefined) {
     console.debug("No index defined - writing comment to the latest index");
@@ -83,15 +78,10 @@ export async function writeCommentToIndex(
 
   const bee = new Bee(beeApiUrl);
 
-  const commentObject: Comment = {
-    ...comment.message,
-    messageId: comment.message.messageId || uuid(),
-  };
-
-  const userCommentObj: UserComment = {
-    message: commentObject,
+  const userCommentObj: MessageData = {
+    ...comment,
+    id: comment.id || uuidv4(),
     timestamp: Types.isNumber(comment.timestamp) ? comment.timestamp : new Date().getTime(),
-    user: comment.user,
   };
 
   try {
@@ -103,10 +93,11 @@ export async function writeCommentToIndex(
       JSON.stringify(userCommentObj),
       index,
     );
+
     return userCommentObj;
-  } catch (error) {
-    console.debug("Error while writing comment: ", error);
-    return {} as UserComment;
+  } catch (err) {
+    console.error(`Error while writing comment: ${err}`);
+    return;
   }
 }
 
@@ -117,16 +108,16 @@ export async function writeCommentToIndex(
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
  *
- * @returns The the array of comment objects that were read from the feed.
+ * @returns The the array of comment objects that were read from the feed or undefined in case of failure.
  */
-export async function readComments(options?: Options): Promise<UserComment[]> {
+export async function readComments(options?: Options): Promise<MessageData[] | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
 
   const bee = new Bee(beeApiUrl);
 
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const userComments: UserComment[] = [];
+  const userComments: MessageData[] = [];
 
   let nextIndex = 0n;
 
@@ -142,7 +133,12 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
       if (isUserComment(commentData)) {
         userComments.push(commentData);
       }
-    } catch (_) {
+    } catch (err) {
+      if (!isNotFoundError(err)) {
+        console.error(`Error while reading comments at index ${(nextIndex - 1n).toString()}:`, err);
+        return;
+      }
+
       break;
     }
   }
@@ -159,14 +155,17 @@ export async function readComments(options?: Options): Promise<UserComment[]> {
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
  *
- * @returns The the array of nested comment objects that were read from the feed.
+ * @returns The the array of nested comment objects that were read from the feed or undefined in case of failure.
  */
 export async function readCommentsAsTree(
   start?: FeedIndex,
   end?: FeedIndex,
   options?: Options,
-): Promise<CommentNode[]> {
+): Promise<CommentNode[] | undefined> {
   const userComments = await readCommentsInRange(start, end, options);
+  if (!userComments) {
+    return userComments;
+  }
 
   return commentListToTree(userComments);
 }
@@ -181,13 +180,13 @@ export async function readCommentsAsTree(
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
  *
- * @returns The the array of comment objects that were read from the feed.
+ * @returns The the array of comment objects that were read from the feed or undefined in case of failure.
  */
 export async function readCommentsInRange(
   start?: FeedIndex,
   end?: FeedIndex,
   options?: Options,
-): Promise<UserComment[]> {
+): Promise<MessageData[] | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
   if (start === undefined || end === undefined) {
     console.debug("No start or end index - reading comments synchronously");
@@ -199,12 +198,13 @@ export async function readCommentsInRange(
 
   const feedReader = bee.makeFeedReader(new Bytes(identifier).toUint8Array(), address);
 
-  const userComments: UserComment[] = [];
+  const userComments: MessageData[] = [];
+  const actualStart = end > start ? start.toBigInt() : end.toBigInt();
+  const feedUpdatePromises: Promise<FeedReferenceResult>[] = [];
+  let i = actualStart;
 
   try {
-    const actualStart = end > start ? start.toBigInt() : end.toBigInt();
-    const feedUpdatePromises: Promise<FeedReferenceResult>[] = [];
-    for (let i = actualStart; i <= end.toBigInt(); i++) {
+    for (i; i <= end.toBigInt(); i++) {
       feedUpdatePromises.push(feedReader.downloadReference({ index: FeedIndex.fromBigInt(i) }));
     }
     const dataPromises: Promise<Bytes>[] = [];
@@ -231,8 +231,12 @@ export async function readCommentsInRange(
       });
     });
   } catch (err) {
-    console.debug(`Error while reading comments from ${start} to ${end}: ${err}`);
-    return [] as UserComment[];
+    if (!isNotFoundError(err)) {
+      console.error(`Error while reading comments from ${start.toString()} to ${end.toString()}: ${err}`);
+      return;
+    }
+
+    console.debug(`No comment found at index ${i.toString()}`);
   }
 
   userComments.sort((a, b) => a.timestamp - b.timestamp);
@@ -249,34 +253,32 @@ export async function readCommentsInRange(
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
  *
- * @returns The the comment object that was read from the feed.
+ * @returns The the comment object that was read from the feed or undefined in case of failure.
  */
-export async function readSingleComment(index?: FeedIndex, options?: Options): Promise<SingleComment | undefined> {
+export async function readSingleComment(index?: FeedIndex, options?: Options): Promise<SingleMessage | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
 
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  let userComment: UserComment;
-  let nextIx: string | undefined = undefined;
+  const singleComment: SingleMessage = {} as SingleMessage;
   try {
-    const { objectdata: commentData, nextIndex } = await readFeedData(
-      bee,
-      new Bytes(identifier).toUint8Array(),
-      address,
-      index,
-    );
-    nextIx = nextIndex.toString();
+    const { objectdata, nextIndex } = await readFeedData(bee, new Bytes(identifier).toUint8Array(), address, index);
 
-    if (isUserComment(commentData)) {
-      userComment = commentData;
+    if (isUserComment(objectdata)) {
+      singleComment.message = objectdata;
+      singleComment.nextIndex = nextIndex.toString();
     } else {
-      throw new Error(`Invalid comment format: ${JSON.stringify(commentData)}`);
+      throw new Error(`Invalid comment format: ${JSON.stringify(objectdata)}`);
     }
-  } catch (error) {
-    console.debug("Error while reading single comment: ", error);
-    return undefined;
+  } catch (err) {
+    if (!isNotFoundError(err)) {
+      console.error(`Error while reading single comment at index ${index?.toString()}: ${err}`);
+      return;
+    }
+
+    console.debug(`No comment found at index ${index?.toString()}`);
   }
 
-  return { comment: userComment, nextIndex: nextIx };
+  return singleComment;
 }

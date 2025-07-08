@@ -2,10 +2,10 @@ import { Bee, FeedIndex } from "@ethersphere/bee-js";
 
 import { isReactionArray } from "./asserts/models.assert";
 import { Options } from "./model/options.model";
-import { Reaction, ReactionsWithIndex } from "./model/reaction.model";
-import { prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
+import { isNotFoundError, prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
 import { ReactionError } from "./utils/errors";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
+import { MessageData, MessageWithIndex } from "./model";
 
 /**
  * Writes a list of reactions to a feed index using the Bee API.
@@ -17,10 +17,10 @@ import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/u
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
  * @throws StampError if no valid stamp is found.
  *
- * @returns A promise that resolves when the reactions have been successfully written to the feed.
+ * @returns A promise that resolves when the reactions have been successfully written to the feed or undefined in case of failure.
  */
 export async function writeReactionsToIndex(
-  reactions: Reaction[],
+  reactions: MessageData[],
   index?: FeedIndex,
   options?: Options,
 ): Promise<void> {
@@ -45,32 +45,36 @@ export async function writeReactionsToIndex(
  * @throws PrivateKeyError if no privatekey is provided and it cannot be generated from the url.
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
  *
- * @returns A promise that resolves to an object containing the reactions and the next feed index, or `undefined` if an error occurs.
+ * @returns A reactions array that was read from the feed or undefined in case of failure.
  */
 export async function readReactionsWithIndex(
   index?: FeedIndex,
   options?: Options,
-): Promise<ReactionsWithIndex | undefined> {
+): Promise<MessageWithIndex | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
 
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  let reactions: Reaction[] = [];
-  let nextIx: string;
+  //TODO: return with index = -1 instead of undefined
+  const reactionsWithIndex: MessageWithIndex = {} as MessageWithIndex;
   try {
     const { objectdata: reactionData, nextIndex } = await readFeedData(bee, identifier, address, index);
-    nextIx = nextIndex.toString();
 
     if (isReactionArray(reactionData)) {
-      reactions = reactionData;
+      reactionsWithIndex.messages = reactionData;
+      reactionsWithIndex.nextIndex = nextIndex.toString();
     } else {
       throw new ReactionError(`Invalid reactions format: ${JSON.stringify(reactionData)}`);
     }
-  } catch (error) {
-    console.debug("Error while reading reactions: ", error);
-    return;
+  } catch (err) {
+    if (!isNotFoundError(err)) {
+      console.error(`Error while reading reactions at index ${index?.toString()}:`, err);
+      return;
+    }
+
+    console.debug(`No reaction found at index ${index?.toString()}`);
   }
 
-  return { reactions: reactions, nextIndex: nextIx };
+  return reactionsWithIndex;
 }
