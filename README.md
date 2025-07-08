@@ -29,7 +29,7 @@ const comment = {
   address: "user-address",
   timestamp: Date.now(),
   index: 0,
-  chatTopic: "your-feed-topic",
+  topic: "your-feed-topic",
   targetMessageId: "parent-message-id",
 };
 
@@ -141,7 +141,7 @@ const newReaction = {
   address: "user-address",
   timestamp: Date.now(),
   index: 0,
-  chatTopic: "reaction-topic",
+  topic: "reaction-topic",
   targetMessageId: commentId,
 };
 const updatedState = updateReactions(reactionState, newReaction);
@@ -189,9 +189,8 @@ interface MessageData {
   address: string;
   timestamp: number;
   index: number;
-  chatTopic: string; // For the feed indentifier
+  topic: string; // For the feed indentifier
   targetMessageId?: string; // For replies and reactions
-  userTopic?: string; // These can be omitted if not needed
   signature?: string; // For user verification
   flagged?: boolean; // For UI filtering
   reason?: string;

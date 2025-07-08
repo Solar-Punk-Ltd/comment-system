@@ -12,10 +12,9 @@ export interface MessageData {
   address: string;
   timestamp: number;
   index: number;
-  chatTopic: string;
+  topic: string;
   targetMessageId?: string;
   signature?: string;
-  userTopic?: string;
   flagged?: boolean;
   reason?: string;
 }

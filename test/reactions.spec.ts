@@ -5,7 +5,7 @@ import { MessageData, readReactionsWithIndex, writeReactionsToIndex } from "../s
 import { MessageType } from "../src/model/comment.model";
 import { ReactionError } from "../src/utils/errors";
 import { getReactionFeedId, getReactionFeedIdForComment, updateReactions } from "../src/utils/reactions";
-import { FeedPayloadResult, FeedReferenceResult } from "../src/utils/types";
+import { FeedReferenceResult } from "../src/utils/types";
 
 import { createInitMocks } from "./mockHelpers";
 import { MOCK_STAMP, mockReactions, SWARM_ZERO_ADDRESS, testIdentity, user1 } from "./utils";
@@ -179,16 +179,21 @@ describe("Reactions tests", () => {
     });
 
     it("should read a reactions array from a specified feed with an undefined index", async () => {
-      const nextIndex = FeedIndex.fromBigInt(5n);
-      const downloadSpy = jest.fn().mockResolvedValue({
-        payload: Bytes.fromUtf8(JSON.stringify(mockReactions)),
+      const nextIndex = FeedIndex.fromBigInt(6n);
+      const mockRef = new Reference("1".repeat(64));
+      const downloadReferenceSpy = jest.fn().mockResolvedValue({
+        reference: mockRef,
         feedIndex: FeedIndex.fromBigInt(5n),
         feedIndexNext: nextIndex,
-      } as FeedPayloadResult);
+      } as FeedReferenceResult);
+
+      const downloadDataSpy = jest
+        .spyOn(Bee.prototype, "downloadData")
+        .mockResolvedValue(Bytes.fromUtf8(JSON.stringify(mockReactions)));
 
       const makeFeedReaderSpy = jest.spyOn(Bee.prototype, "makeFeedReader").mockReturnValue({
-        download: downloadSpy,
-        downloadReference: jest.fn(),
+        download: jest.fn(),
+        downloadReference: downloadReferenceSpy,
         downloadPayload: jest.fn(),
         owner: new EthAddress("1".repeat(40)),
         topic: Topic.fromString("default-topic"),
@@ -199,12 +204,14 @@ describe("Reactions tests", () => {
         identifier: reactionFeedId,
         address: testIdentity.address,
       });
+
       expect(reactions).toBeDefined();
       expect(reactions?.messages).toStrictEqual(mockReactions);
       expect(reactions?.nextIndex).toStrictEqual(nextIndex.toString());
 
       expect(makeFeedReaderSpy).toHaveBeenCalledWith(reactionFeedId, testIdentity.address);
-      expect(downloadSpy).toHaveBeenCalled();
+      expect(downloadReferenceSpy).toHaveBeenCalled();
+      expect(downloadDataSpy).toHaveBeenCalledWith(mockRef.toUint8Array());
     });
   });
 
@@ -264,7 +271,7 @@ describe("Reactions tests", () => {
         timestamp: 2,
         type: MessageType.REACTION,
         index: 2,
-        chatTopic: "chat1",
+        topic: "chat1",
       };
 
       const updated = updateReactions(mockReactions, newReaction);
@@ -283,7 +290,7 @@ describe("Reactions tests", () => {
         timestamp: 2,
         type: MessageType.REACTION,
         index: 2,
-        chatTopic: "chat1",
+        topic: "chat1",
       };
 
       const updated = updateReactions(mockReactions, newReaction);

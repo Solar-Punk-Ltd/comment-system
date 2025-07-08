@@ -3,24 +3,10 @@ import { Types } from "cafe-utility";
 import { MessageData, MessageType } from "../model/comment.model";
 
 export function isMessageData(obj: unknown): obj is MessageData {
-  const {
-    id,
-    index,
-    type,
-    chatTopic,
-    message,
-    timestamp,
-    username,
-    address,
-    targetMessageId,
-    flagged,
-    reason,
-    signature,
-    userTopic,
-  } = (obj || {}) as MessageData;
+  const { id, index, type, topic, message, timestamp, username, address, targetMessageId, flagged, reason, signature } =
+    (obj || {}) as MessageData;
   const isValidId = id ? Types.isString(id) : true;
   const isValidSignature = signature ? Types.isString(signature) : true;
-  const isValidUserTopic = userTopic ? Types.isString(userTopic) : true;
   const isValidTargetMessageId = targetMessageId ? Types.isString(targetMessageId) : true;
   const isValidFlagged = flagged ? Types.isBoolean(flagged) : true;
   const isValidReason = reason ? Types.isString(reason) : true;
@@ -32,13 +18,12 @@ export function isMessageData(obj: unknown): obj is MessageData {
       Types.isString(address) &&
       Types.isNumber(index) &&
       Types.isString(type) &&
-      Types.isString(chatTopic) &&
+      Types.isString(topic) &&
       isValidId &&
       isValidTargetMessageId &&
       isValidFlagged &&
       isValidReason &&
-      isValidSignature &&
-      isValidUserTopic,
+      isValidSignature,
   );
 }
 

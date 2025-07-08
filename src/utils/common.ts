@@ -66,21 +66,14 @@ export async function readFeedData(
 ): Promise<FeedData> {
   const feedReader = bee.makeFeedReader(identifier, address);
 
-  let objectdata: any;
-  let nextIndex: string;
-  if (index === undefined) {
-    const feedUpdate = await feedReader.download();
-    const { feedIndexNext, payload } = feedUpdate;
-    objectdata = payload.toJSON();
-    nextIndex = feedIndexNext?.toString() || FeedIndex.fromBigInt(0n).toString();
-  } else {
-    const feedUpdate = await feedReader.downloadReference({ index });
-    nextIndex = FeedIndex.fromBigInt(index.toBigInt() + 1n).toString();
-    const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
-    objectdata = data.toJSON();
-  }
+  const feedUpdate = await feedReader.downloadReference(index ? { index } : undefined);
+  const nextIndex =
+    feedUpdate.feedIndexNext !== undefined
+      ? feedUpdate.feedIndexNext.toString()
+      : FeedIndex.fromBigInt(feedUpdate.feedIndex.toBigInt() + 1n).toString();
+  const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
 
-  return { objectdata, nextIndex };
+  return { objectdata: data.toJSON(), nextIndex };
 }
 
 export async function writeFeedData(

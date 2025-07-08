@@ -15,7 +15,7 @@ export const mockComments: MessageData[] = [
     type: MessageType.TEXT,
     id: "00",
     index: 0,
-    chatTopic: "chat1",
+    topic: "chat1",
     address: user1.address,
   },
   {
@@ -25,7 +25,7 @@ export const mockComments: MessageData[] = [
     type: MessageType.TEXT,
     id: "01",
     index: 1,
-    chatTopic: "chat1",
+    topic: "chat1",
     address: user2.address,
   },
 ];
@@ -38,7 +38,7 @@ export const mockReactions: MessageData[] = [
     targetMessageId: "00",
     id: "0",
     timestamp: 0,
-    chatTopic: "chat1",
+    topic: "chat1",
     index: 0,
   },
   {
@@ -49,7 +49,7 @@ export const mockReactions: MessageData[] = [
     targetMessageId: "00",
     id: "1",
     timestamp: 1,
-    chatTopic: "chat1",
+    topic: "chat1",
     index: 1,
   },
 ];
