@@ -56,7 +56,6 @@ export async function readReactionsWithIndex(
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  //TODO: return with index = -1 instead of undefined
   const reactionsWithIndex: MessageWithIndex = {} as MessageWithIndex;
   try {
     const { objectdata: reactionData, nextIndex } = await readFeedData(bee, identifier, address, index);

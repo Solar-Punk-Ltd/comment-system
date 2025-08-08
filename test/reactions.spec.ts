@@ -171,7 +171,7 @@ describe("Reactions tests", () => {
       });
       expect(reactions).toBeDefined();
       expect(reactions?.messages).toStrictEqual(mockReactions);
-      expect(reactions?.nextIndex).toStrictEqual(FeedIndex.fromBigInt(newIndex.toBigInt() + 1n).toString());
+      expect(reactions?.nextIndex).toStrictEqual(newIndex.next().toString());
 
       expect(downloadReferenceSpy).toHaveBeenCalledWith({ index: newIndex });
       expect(makeFeedReaderSpy).toHaveBeenCalledWith(reactionFeedId, testIdentity.address);
@@ -270,7 +270,7 @@ describe("Reactions tests", () => {
         id: "2",
         timestamp: 2,
         type: MessageType.REACTION,
-        index: 2,
+        index: 2n.toString(),
         topic: "chat1",
       };
 
@@ -289,7 +289,7 @@ describe("Reactions tests", () => {
         id: "2",
         timestamp: 2,
         type: MessageType.REACTION,
-        index: 2,
+        index: 2n.toString(),
         topic: "chat1",
       };
 

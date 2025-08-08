@@ -70,7 +70,7 @@ export async function readFeedData(
   const nextIndex =
     feedUpdate.feedIndexNext !== undefined
       ? feedUpdate.feedIndexNext.toString()
-      : FeedIndex.fromBigInt(feedUpdate.feedIndex.toBigInt() + 1n).toString();
+      : feedUpdate.feedIndex.next().toString();
   const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
 
   return { objectdata: data.toJSON(), nextIndex };
