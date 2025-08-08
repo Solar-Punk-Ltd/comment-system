@@ -16,7 +16,7 @@ export function isMessageData(obj: unknown): obj is MessageData {
       Types.isNumber(timestamp) &&
       Types.isString(username) &&
       Types.isString(address) &&
-      Types.isNumber(index) &&
+      Types.isString(index) &&
       Types.isString(type) &&
       Types.isString(topic) &&
       isValidId &&

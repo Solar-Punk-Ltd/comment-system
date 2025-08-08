@@ -11,7 +11,7 @@ export interface MessageData {
   username: string;
   address: string;
   timestamp: number;
-  index: number;
+  index: string;
   topic: string;
   targetMessageId?: string;
   signature?: string;

@@ -14,7 +14,7 @@ export const mockComments: MessageData[] = [
     timestamp: 0,
     type: MessageType.TEXT,
     id: "00",
-    index: 0,
+    index: 0n.toString(),
     topic: "chat1",
     address: user1.address,
   },
@@ -24,7 +24,7 @@ export const mockComments: MessageData[] = [
     timestamp: 1,
     type: MessageType.TEXT,
     id: "01",
-    index: 1,
+    index: 1n.toString(),
     topic: "chat1",
     address: user2.address,
   },
@@ -39,7 +39,7 @@ export const mockReactions: MessageData[] = [
     id: "0",
     timestamp: 0,
     topic: "chat1",
-    index: 0,
+    index: 0n.toString(),
   },
   {
     username: user2.username,
@@ -50,7 +50,7 @@ export const mockReactions: MessageData[] = [
     id: "1",
     timestamp: 1,
     topic: "chat1",
-    index: 1,
+    index: 1n.toString(),
   },
 ];
 export const testIdentity = {
