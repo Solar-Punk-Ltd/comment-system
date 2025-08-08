@@ -7,6 +7,8 @@ import { Optional } from "../model/util.types";
 import { IdentifierError, StampError } from "./errors";
 import { getUsableStamp } from "./stamps";
 import { getIdentifierFromUrl } from "./url";
+import { MessageData, MessageType } from "../model";
+import { UserComment } from "../model/legacy.model";
 
 async function prepareOptions(
   options: Options = {},
@@ -96,4 +98,32 @@ export function isNotFoundError(error: any): boolean {
     error.message.includes("404") ||
     error.code === 404
   );
+}
+
+// todo: test
+export function transformLegacyComment(
+  obj: UserComment,
+  derivedAddress: string,
+  index: string,
+  topic: string,
+): MessageData {
+  const { username, message, timestamp, address } = obj;
+  const { text, messageId, threadId, flagged, reason } = message;
+
+  const transformed: MessageData = {
+    id: messageId || "legacyId",
+    username,
+    timestamp,
+    type: MessageType.TEXT,
+    message: text,
+    address: address || derivedAddress,
+    index,
+    topic,
+    targetMessageId: threadId || "legacyThreadId",
+    signature: undefined,
+    flagged,
+    reason,
+  };
+
+  return transformed;
 }

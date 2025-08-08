@@ -2,10 +2,17 @@ import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
 import { Types } from "cafe-utility";
 import { v4 as uuidv4 } from "uuid";
 
-import { isUserComment } from "./asserts/models.assert";
+import { isUserComment, isLegacyUserComment } from "./asserts/models.assert";
 import { CommentNode, SingleMessage, MessageData } from "./model/comment.model";
 import { Options } from "./model/options.model";
-import { isNotFoundError, prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
+import {
+  isNotFoundError,
+  prepareReadOptions,
+  prepareWriteOptions,
+  readFeedData,
+  transformLegacyComment,
+  writeFeedData,
+} from "./utils/common";
 import { FeedReferenceResult } from "./utils/types";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
 import { commentListToTree } from "./utils";
@@ -132,6 +139,12 @@ export async function readComments(options?: Options): Promise<MessageData[] | u
 
       if (isUserComment(commentData)) {
         userComments.push(commentData);
+      } else if (isLegacyUserComment(commentData)) {
+        userComments.push(
+          transformLegacyComment(commentData, address.toString(), (nextIndex - 1n).toString(), identifier),
+        );
+      } else {
+        throw new TypeError(`Invalid comment format: ${JSON.stringify(commentData)}`);
       }
     } catch (err) {
       if (!isNotFoundError(err)) {
@@ -221,9 +234,13 @@ export async function readCommentsInRange(
     await Promise.allSettled(dataPromises).then(results => {
       results.forEach(result => {
         if (result.status === "fulfilled") {
-          const comment = (result.value as Bytes).toJSON();
-          if (isUserComment(comment)) {
-            userComments.push(comment);
+          const commentData = (result.value as Bytes).toJSON();
+          if (isUserComment(commentData)) {
+            userComments.push(commentData);
+          } else if (isLegacyUserComment(commentData)) {
+            userComments.push(transformLegacyComment(commentData, address.toString(), i.toString(), identifier));
+          } else {
+            console.error(`Invalid comment format: ${JSON.stringify(commentData)}`);
           }
         } else {
           console.debug("Failed to fetch comment data: ", result.reason);
@@ -263,13 +280,26 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
 
   const singleComment: SingleMessage = {} as SingleMessage;
   try {
-    const { objectdata, nextIndex } = await readFeedData(bee, new Bytes(identifier).toUint8Array(), address, index);
+    const { objectdata: commentData, nextIndex } = await readFeedData(
+      bee,
+      new Bytes(identifier).toUint8Array(),
+      address,
+      index,
+    );
 
-    if (isUserComment(objectdata)) {
-      singleComment.message = objectdata;
-      singleComment.nextIndex = nextIndex.toString();
+    if (isUserComment(commentData)) {
+      singleComment.message = commentData;
+      singleComment.nextIndex = nextIndex;
+    } else if (isLegacyUserComment(commentData)) {
+      singleComment.message = transformLegacyComment(
+        commentData,
+        address.toString(),
+        (BigInt(nextIndex) - 1n).toString(),
+        identifier,
+      );
+      singleComment.nextIndex = nextIndex;
     } else {
-      throw new Error(`Invalid comment format: ${JSON.stringify(objectdata)}`);
+      throw new TypeError(`Invalid comment format: ${JSON.stringify(commentData)}`);
     }
   } catch (err) {
     if (!isNotFoundError(err)) {
