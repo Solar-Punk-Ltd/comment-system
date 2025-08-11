@@ -9,6 +9,7 @@ import { getUsableStamp } from "./stamps";
 import { getIdentifierFromUrl } from "./url";
 import { MessageData, MessageType } from "../model";
 import { UserComment } from "../model/legacy.model";
+import { FeedData } from "./types";
 
 async function prepareOptions(
   options: Options = {},
@@ -55,11 +56,6 @@ export function prepareReadOptions(
   return prepareOptions(options, false);
 }
 
-export interface FeedData {
-  objectdata: any;
-  nextIndex: string;
-}
-
 export async function readFeedData(
   bee: Bee,
   identifier: string | Uint8Array,
@@ -71,8 +67,8 @@ export async function readFeedData(
   const feedUpdate = await feedReader.downloadReference(index ? { index } : undefined);
   const nextIndex =
     feedUpdate.feedIndexNext !== undefined
-      ? feedUpdate.feedIndexNext.toString()
-      : feedUpdate.feedIndex.next().toString();
+      ? feedUpdate.feedIndexNext.toBigInt()
+      : feedUpdate.feedIndex.next().toBigInt();
   const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
 
   return { objectdata: data.toJSON(), nextIndex };
@@ -104,7 +100,7 @@ export function isNotFoundError(error: any): boolean {
 export function transformLegacyComment(
   obj: UserComment,
   derivedAddress: string,
-  index: string,
+  index: FeedIndex,
   topic: string,
 ): MessageData {
   const { username, message, timestamp, address } = obj;
@@ -117,12 +113,13 @@ export function transformLegacyComment(
     type: MessageType.TEXT,
     message: text,
     address: address || derivedAddress,
-    index,
+    index: index.toString(),
     topic,
     targetMessageId: threadId || "legacyThreadId",
     signature: undefined,
     flagged,
     reason,
+    isLegacy: true,
   };
 
   return transformed;

@@ -17,6 +17,7 @@ export interface MessageData {
   signature?: string;
   flagged?: boolean;
   reason?: string;
+  isLegacy?: boolean;
 }
 
 export interface CommentNode {

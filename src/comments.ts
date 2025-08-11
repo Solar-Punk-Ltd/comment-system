@@ -141,7 +141,7 @@ export async function readComments(options?: Options): Promise<MessageData[] | u
         userComments.push(commentData);
       } else if (isLegacyUserComment(commentData)) {
         userComments.push(
-          transformLegacyComment(commentData, address.toString(), (nextIndex - 1n).toString(), identifier),
+          transformLegacyComment(commentData, address.toString(), FeedIndex.fromBigInt(nextIndex - 1n), identifier),
         );
       } else {
         throw new TypeError(`Invalid comment format: ${JSON.stringify(commentData)}`);
@@ -238,7 +238,9 @@ export async function readCommentsInRange(
           if (isUserComment(commentData)) {
             userComments.push(commentData);
           } else if (isLegacyUserComment(commentData)) {
-            userComments.push(transformLegacyComment(commentData, address.toString(), i.toString(), identifier));
+            userComments.push(
+              transformLegacyComment(commentData, address.toString(), FeedIndex.fromBigInt(i), identifier),
+            );
           } else {
             console.error(`Invalid comment format: ${JSON.stringify(commentData)}`);
           }
@@ -289,15 +291,15 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
 
     if (isUserComment(commentData)) {
       singleComment.message = commentData;
-      singleComment.nextIndex = nextIndex;
+      singleComment.nextIndex = nextIndex.toString();
     } else if (isLegacyUserComment(commentData)) {
       singleComment.message = transformLegacyComment(
         commentData,
         address.toString(),
-        (BigInt(nextIndex) - 1n).toString(),
+        FeedIndex.fromBigInt(nextIndex - 1n),
         identifier,
       );
-      singleComment.nextIndex = nextIndex;
+      singleComment.nextIndex = FeedIndex.fromBigInt(nextIndex).toString();
     } else {
       throw new TypeError(`Invalid comment format: ${JSON.stringify(commentData)}`);
     }

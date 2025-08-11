@@ -62,7 +62,7 @@ export async function readReactionsWithIndex(
 
     if (isReactionArray(reactionData)) {
       reactionsWithIndex.messages = reactionData;
-      reactionsWithIndex.nextIndex = nextIndex.toString();
+      reactionsWithIndex.nextIndex = FeedIndex.fromBigInt(nextIndex).toString();
     } else {
       throw new ReactionError(`Invalid reactions format: ${JSON.stringify(reactionData)}`);
     }

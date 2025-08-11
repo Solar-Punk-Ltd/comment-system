@@ -10,3 +10,8 @@ export interface FeedPayloadResult extends FeedUpdateHeaders {
 export interface FeedReferenceResult extends FeedUpdateHeaders {
   reference: Reference;
 }
+
+export interface FeedData {
+  objectdata: any;
+  nextIndex: bigint;
+}
