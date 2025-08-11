@@ -2,8 +2,8 @@ import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
 import { Types } from "cafe-utility";
 import { v4 as uuidv4 } from "uuid";
 
-import { isUserComment, isLegacyUserComment } from "./asserts/models.assert";
-import { CommentNode, SingleMessage, MessageData } from "./model/comment.model";
+import { isLegacyUserComment, isUserComment } from "./asserts/models.assert";
+import { CommentNode, MessageData, SingleMessage } from "./model/comment.model";
 import { Options } from "./model/options.model";
 import {
   isNotFoundError,

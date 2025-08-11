@@ -1,15 +1,15 @@
 import { BatchId, Bee, EthAddress, FeedIndex, Topic } from "@ethersphere/bee-js";
 
 import { DEFAULT_BEE_URL } from "../constants/constants";
+import { MessageData, MessageType } from "../model";
+import { UserComment } from "../model/legacy.model";
 import { Options } from "../model/options.model";
 import { Optional } from "../model/util.types";
 
 import { IdentifierError, StampError } from "./errors";
 import { getUsableStamp } from "./stamps";
-import { getIdentifierFromUrl } from "./url";
-import { MessageData, MessageType } from "../model";
-import { UserComment } from "../model/legacy.model";
 import { FeedData } from "./types";
+import { getIdentifierFromUrl } from "./url";
 
 async function prepareOptions(
   options: Options = {},
