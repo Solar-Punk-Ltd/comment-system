@@ -107,7 +107,7 @@ export function transformLegacyComment(
   const { text, messageId, threadId, flagged, reason } = message;
 
   const transformed: MessageData = {
-    id: messageId || "legacyId",
+    id: messageId,
     username,
     timestamp,
     type: MessageType.TEXT,
@@ -115,7 +115,7 @@ export function transformLegacyComment(
     address: address || derivedAddress,
     index: index.toString(),
     topic,
-    targetMessageId: threadId || "legacyThreadId",
+    targetMessageId: threadId,
     signature: undefined,
     flagged,
     reason,

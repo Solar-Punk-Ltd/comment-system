@@ -143,7 +143,7 @@ describe("Comments tests", () => {
         beeApiUrl: MOCK_SERVER_URL,
       });
 
-      expect([comment]).toStrictEqual([{ message: mockComments[0], nextIndex: "1" }]);
+      expect([comment]).toStrictEqual([{ ...mockComments[0] }]);
 
       assertAllIsDone();
     });

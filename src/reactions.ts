@@ -5,7 +5,7 @@ import { Options } from "./model/options.model";
 import { isNotFoundError, prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
 import { ReactionError } from "./utils/errors";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
-import { MessageData, MessageWithIndex } from "./model";
+import { MessageData, MessagesWithIndex } from "./model";
 
 /**
  * Writes a list of reactions to a feed index using the Bee API.
@@ -50,13 +50,13 @@ export async function writeReactionsToIndex(
 export async function readReactionsWithIndex(
   index?: FeedIndex,
   options?: Options,
-): Promise<MessageWithIndex | undefined> {
+): Promise<MessagesWithIndex | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
 
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const reactionsWithIndex: MessageWithIndex = {} as MessageWithIndex;
+  const reactionsWithIndex: MessagesWithIndex = {} as MessagesWithIndex;
   try {
     const { objectdata: reactionData, nextIndex } = await readFeedData(bee, identifier, address, index);
 

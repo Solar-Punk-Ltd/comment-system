@@ -20,17 +20,12 @@ export interface MessageData {
   isLegacy?: boolean;
 }
 
+export interface MessagesWithIndex {
+  messages: MessageData[];
+  nextIndex: string;
+}
+
 export interface CommentNode {
   message: MessageData;
   replies: CommentNode[];
-}
-
-export interface SingleMessage {
-  message: MessageData;
-  nextIndex?: string;
-}
-
-export interface MessageWithIndex {
-  messages: MessageData[];
-  nextIndex: string;
 }

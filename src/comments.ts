@@ -3,7 +3,7 @@ import { Types } from "cafe-utility";
 import { v4 as uuidv4 } from "uuid";
 
 import { isLegacyUserComment, isUserComment } from "./asserts/models.assert";
-import { CommentNode, MessageData, SingleMessage } from "./model/comment.model";
+import { CommentNode, MessageData } from "./model/comment.model";
 import { Options } from "./model/options.model";
 import {
   isNotFoundError,
@@ -213,50 +213,51 @@ export async function readCommentsInRange(
 
   const userComments: MessageData[] = [];
   const actualStart = end > start ? start.toBigInt() : end.toBigInt();
-  const feedUpdatePromises: Promise<FeedReferenceResult>[] = [];
-  let i = actualStart;
+  const feedUpdatePromises: Promise<{ result: FeedReferenceResult; ix: bigint }>[] = [];
 
-  try {
-    for (i; i <= end.toBigInt(); i++) {
-      feedUpdatePromises.push(feedReader.downloadReference({ index: FeedIndex.fromBigInt(i) }));
-    }
-    const dataPromises: Promise<Bytes>[] = [];
-    await Promise.allSettled(feedUpdatePromises).then(results => {
-      results.forEach(result => {
-        if (result.status === "fulfilled") {
-          dataPromises.push(bee.downloadData(result.value.reference.toUint8Array()));
-        } else {
-          console.debug("Failed to fetch feed update: ", result.reason);
-        }
-      });
-    });
-
-    await Promise.allSettled(dataPromises).then(results => {
-      results.forEach(result => {
-        if (result.status === "fulfilled") {
-          const commentData = (result.value as Bytes).toJSON();
-          if (isUserComment(commentData)) {
-            userComments.push(commentData);
-          } else if (isLegacyUserComment(commentData)) {
-            userComments.push(
-              transformLegacyComment(commentData, address.toString(), FeedIndex.fromBigInt(i), identifier),
-            );
-          } else {
-            console.error(`Invalid comment format: ${JSON.stringify(commentData)}`);
-          }
-        } else {
-          console.debug("Failed to fetch comment data: ", result.reason);
-        }
-      });
-    });
-  } catch (err) {
-    if (!isNotFoundError(err)) {
-      console.error(`Error while reading comments from ${start.toString()} to ${end.toString()}: ${err}`);
-      return;
-    }
-
-    console.debug(`No comment found at index ${i.toString()}`);
+  for (let i = actualStart; i <= end.toBigInt(); i++) {
+    feedUpdatePromises.push(
+      feedReader.downloadReference({ index: FeedIndex.fromBigInt(i) }).then(result => ({ result, ix: i })),
+    );
   }
+
+  const dataPromises: Promise<{ data: Bytes; ix: bigint }>[] = [];
+  const feedResults = await Promise.allSettled(feedUpdatePromises);
+  feedResults.forEach(r => {
+    if (r.status === "fulfilled") {
+      dataPromises.push(
+        bee.downloadData(r.value.result.reference.toUint8Array()).then(data => ({ data, ix: r.value.ix })),
+      );
+    } else {
+      if (!isNotFoundError(r.reason)) {
+        console.error(`Error while fetching feed update: ${r.reason}`);
+        return;
+      }
+      console.debug("Failed to fetch feed update (not found): ", r.reason);
+    }
+  });
+
+  const dataResults = await Promise.allSettled(dataPromises);
+  dataResults.forEach(r => {
+    if (r.status === "fulfilled") {
+      const commentData = (r.value.data as Bytes).toJSON();
+      if (isUserComment(commentData)) {
+        userComments.push(commentData);
+      } else if (isLegacyUserComment(commentData)) {
+        userComments.push(
+          transformLegacyComment(commentData, address.toString(), FeedIndex.fromBigInt(r.value.ix), identifier),
+        );
+      } else {
+        console.error(`Invalid comment format: ${JSON.stringify(commentData)}`);
+      }
+    } else {
+      if (!isNotFoundError(r.reason)) {
+        console.error(`Error while fetching comment data: ${r.reason}`);
+        return;
+      }
+      console.debug("Failed to fetch comment data (not found): ", r.reason);
+    }
+  });
 
   userComments.sort((a, b) => a.timestamp - b.timestamp);
 
@@ -274,13 +275,13 @@ export async function readCommentsInRange(
  *
  * @returns The the comment object that was read from the feed or undefined in case of failure.
  */
-export async function readSingleComment(index?: FeedIndex, options?: Options): Promise<SingleMessage | undefined> {
+export async function readSingleComment(index?: FeedIndex, options?: Options): Promise<MessageData | undefined> {
   const { identifier, beeApiUrl, address: optionsAddress } = await prepareReadOptions(options);
 
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  const singleComment: SingleMessage = {} as SingleMessage;
+  let comment: MessageData = {} as MessageData;
   try {
     const { objectdata: commentData, nextIndex } = await readFeedData(
       bee,
@@ -290,16 +291,14 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
     );
 
     if (isUserComment(commentData)) {
-      singleComment.message = commentData;
-      singleComment.nextIndex = nextIndex.toString();
+      comment = commentData;
     } else if (isLegacyUserComment(commentData)) {
-      singleComment.message = transformLegacyComment(
+      comment = transformLegacyComment(
         commentData,
         address.toString(),
         FeedIndex.fromBigInt(nextIndex - 1n),
         identifier,
       );
-      singleComment.nextIndex = FeedIndex.fromBigInt(nextIndex).toString();
     } else {
       throw new TypeError(`Invalid comment format: ${JSON.stringify(commentData)}`);
     }
@@ -312,5 +311,5 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
     console.debug(`No comment found at index ${index?.toString()}`);
   }
 
-  return singleComment;
+  return comment;
 }
