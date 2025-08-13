@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@ethersphere/bee-js':
-        specifier: ^9.7.0
-        version: 9.7.0
+        specifier: ^9.8.1
+        version: 9.8.1
       cafe-utility:
         specifier: ^31.1.1
         version: 31.1.1
@@ -974,8 +974,8 @@ packages:
     resolution: {integrity: sha512-Z5kJ+wU3oA7MMIqVR9tyZRtjYPr4OC004Q4Rw7pgOKUOKkJfZ3O24nz3WYfGRpMDNmcOi3TwQOmgm7B7Tpii0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@ethersphere/bee-js@9.7.0':
-    resolution: {integrity: sha512-kA03jVgxz01TYAIKWwUQ6ob9I/hzl4XrqO48ZYaivuvMX9n+8WG1FPx+qcCUHSm6L1LBtGJ52WKnrWmdcTKWFw==}
+  '@ethersphere/bee-js@9.8.1':
+    resolution: {integrity: sha512-crOjFHYPdQPG1ty2KTO5b7spIGRVb6MLucC8KOyUsPk72XYCQLf0FZl8mwKAozqZd6NLOOPZw8E/ftjoz7zYJQ==}
     engines: {bee: 2.4.0-390a402e, beeApiVersion: 7.2.0}
 
   '@humanfs/core@0.19.1':
@@ -1990,9 +1990,6 @@ packages:
 
   builtin-status-codes@3.0.0:
     resolution: {integrity: sha512-HpGFw18DgFWlncDfjTa2rcQ4W88O1mC8e8yZ2AvQY5KDaktSTwo+KRf6nHK6FRI5FyRyb/5T6+TSxfP7QyGsmQ==}
-
-  cafe-utility@28.2.0:
-    resolution: {integrity: sha512-EppX+Asq5R/3Ozn8eyPpDKVVb9q5hky3dK1gBIwIoR/LNPZJc16KoZQ9zqWNigwTLpfpg5Eyo09iq8M59moR3w==}
 
   cafe-utility@31.1.1:
     resolution: {integrity: sha512-1GZGghv6wi5Yfb6DGR02aIwPKH1/ny9w8nlUZM0Mo+dUf0BpmPmy9wKMZZEeaY72LPmDWQtfyoGGgaG5kINsNw==}
@@ -5307,16 +5304,17 @@ snapshots:
       '@eslint/core': 0.15.2
       levn: 0.4.1
 
-  '@ethersphere/bee-js@9.7.0':
+  '@ethersphere/bee-js@9.8.1':
     dependencies:
-      axios: 0.30.0
-      cafe-utility: 28.2.0
+      axios: 0.30.0(debug@4.4.1)
+      cafe-utility: 31.1.1
+      debug: 4.4.1
       isomorphic-ws: 4.0.1(ws@8.18.1)
-      semver: 7.7.1
+      semver: 7.7.2
       ws: 8.18.1
     transitivePeerDependencies:
       - bufferutil
-      - debug
+      - supports-color
       - utf-8-validate
 
   '@humanfs/core@0.19.1': {}
@@ -6417,9 +6415,9 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.1.0
 
-  axios@0.30.0:
+  axios@0.30.0(debug@4.4.1):
     dependencies:
-      follow-redirects: 1.15.9
+      follow-redirects: 1.15.9(debug@4.4.1)
       form-data: 4.0.2
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -6614,8 +6612,6 @@ snapshots:
       ieee754: 1.2.1
 
   builtin-status-codes@3.0.0: {}
-
-  cafe-utility@28.2.0: {}
 
   cafe-utility@31.1.1: {}
 
@@ -7390,7 +7386,9 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  follow-redirects@1.15.9: {}
+  follow-redirects@1.15.9(debug@4.4.1):
+    optionalDependencies:
+      debug: 4.4.1
 
   for-each@0.3.5:
     dependencies:
@@ -8281,7 +8279,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.7.1
+      semver: 7.7.2
 
   make-error@1.3.6: {}
 
