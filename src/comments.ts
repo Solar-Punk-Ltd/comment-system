@@ -2,15 +2,14 @@ import { Bee, Bytes, FeedIndex, UploadResult } from "@ethersphere/bee-js";
 import { Types } from "cafe-utility";
 import { v4 as uuidv4 } from "uuid";
 
-import { isLegacyUserComment, isUserComment } from "./asserts/models.assert";
 import { CommentNode, MessageData } from "./model/comment.model";
 import { Options } from "./model/options.model";
 import {
+  assertAndTransformData,
   isNotFoundError,
   prepareReadOptions,
   prepareWriteOptions,
   readFeedData,
-  transformLegacyComment,
   writeFeedData,
 } from "./utils/common";
 import { FeedReferenceResult } from "./utils/types";
@@ -50,7 +49,7 @@ export async function writeComment(comment: MessageData, options?: Options): Pro
       JSON.stringify(userCommentObj),
     );
   } catch (err: any) {
-    console.error("Error while writing comment: ", err.message || err);
+    console.error("Error while writing comment to the latest index: ", err.message || err);
     return;
   }
 }
@@ -99,6 +98,7 @@ export async function writeCommentToIndex(
       index,
     );
   } catch (err: any) {
+    console.error(`Error while writing comment to index ${index.toString()}: ${err.message || err}`);
     return;
   }
 }
@@ -125,22 +125,21 @@ export async function readComments(options?: Options): Promise<MessageData[] | u
 
   while (true) {
     try {
-      const { objectdata: commentData } = await readFeedData(
+      const { data } = await readFeedData(
         bee,
         new Bytes(identifier).toUint8Array(),
         address,
         FeedIndex.fromBigInt(nextIndex++),
       );
 
-      if (isUserComment(commentData)) {
-        userComments.push(commentData);
-      } else if (isLegacyUserComment(commentData)) {
-        userComments.push(
-          transformLegacyComment(commentData, address.toString(), FeedIndex.fromBigInt(nextIndex - 1n), identifier),
-        );
-      } else {
-        throw new TypeError(`Invalid comment format: ${JSON.stringify(commentData)}`);
-      }
+      const transformed = assertAndTransformData(
+        data,
+        address.toString(),
+        FeedIndex.fromBigInt(nextIndex - 1n),
+        identifier,
+      );
+
+      userComments.push(transformed);
     } catch (err: any) {
       if (!isNotFoundError(err)) {
         console.error(`Error while reading comments at index ${(nextIndex - 1n).toString()}:`, err.message || err);
@@ -217,42 +216,41 @@ export async function readCommentsInRange(
   }
 
   const dataPromises: Promise<{ data: Bytes; ix: bigint }>[] = [];
-  const feedResults = await Promise.allSettled(feedUpdatePromises);
 
-  for (const r of feedResults) {
-    if (r.status === "fulfilled") {
+  feedUpdatePromises.forEach(async feedPromise => {
+    try {
+      const feedResult = await feedPromise;
       dataPromises.push(
-        bee.downloadData(r.value.result.reference.toUint8Array()).then(data => ({ data, ix: r.value.ix })),
+        bee.downloadData(feedResult.result.reference.toUint8Array()).then(data => ({ data, ix: feedResult.ix })),
       );
-    } else {
-      if (!isNotFoundError(r.reason)) {
-        console.error(`Error while fetching feed update: ${r.reason}`);
+    } catch (error) {
+      if (!isNotFoundError(error)) {
+        console.error(`Error while fetching feed update: ${error}`);
         return;
       }
-      console.debug("Failed to fetch feed update (not found): ", r.reason);
-      break;
+      console.debug("Feed update not found: ", error);
     }
-  }
+  });
+
+  await Promise.allSettled(feedUpdatePromises);
 
   const dataResults = await Promise.allSettled(dataPromises);
   for (const r of dataResults) {
     if (r.status === "fulfilled") {
-      const commentData = (r.value.data as Bytes).toJSON();
-      if (isUserComment(commentData)) {
-        userComments.push(commentData);
-      } else if (isLegacyUserComment(commentData)) {
-        userComments.push(
-          transformLegacyComment(commentData, address.toString(), FeedIndex.fromBigInt(r.value.ix), identifier),
-        );
-      } else {
-        console.error(`Invalid comment format: ${JSON.stringify(commentData)}`);
-      }
+      const transformed = assertAndTransformData(
+        (r.value.data as Bytes).toJSON(),
+        address.toString(),
+        FeedIndex.fromBigInt(r.value.ix),
+        identifier,
+      );
+
+      userComments.push(transformed);
     } else {
       if (!isNotFoundError(r.reason)) {
         console.error(`Error while fetching comment data: ${r.reason}`);
         return;
       }
-      console.debug("Failed to fetch comment data (not found): ", r.reason);
+      console.debug("Comment not found: ", r.reason);
       break;
     }
   }
@@ -281,31 +279,17 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
 
   let comment: MessageData | undefined;
   try {
-    const { objectdata: commentData, nextIndex } = await readFeedData(
-      bee,
-      new Bytes(identifier).toUint8Array(),
-      address,
-      index,
-    );
+    const { data, nextIndex } = await readFeedData(bee, new Bytes(identifier).toUint8Array(), address, index);
 
-    if (isUserComment(commentData)) {
-      comment = commentData;
-    } else if (isLegacyUserComment(commentData)) {
-      comment = transformLegacyComment(
-        commentData,
-        address.toString(),
-        FeedIndex.fromBigInt(nextIndex - 1n),
-        identifier,
-      );
-    } else {
-      throw new TypeError(`Invalid comment format: ${JSON.stringify(commentData)}`);
-    }
+    comment = assertAndTransformData(data, address.toString(), FeedIndex.fromBigInt(nextIndex - 1n), identifier);
   } catch (err: any) {
     if (!isNotFoundError(err)) {
-      console.error(`Error while reading single comment at index ${index?.toString()}: ${err.message || err}`);
+      console.error(
+        `Error while reading single comment at index ${index?.toString() || "latest"}: ${err.message || err}`,
+      );
     }
 
-    console.debug(`No comment found at index ${index?.toString()}`);
+    console.debug(`No comment found at index ${index?.toString() || "latest"}`);
   }
 
   return comment;

@@ -1,5 +1,6 @@
 import { BatchId, Bee, EthAddress, FeedIndex, Topic, UploadResult } from "@ethersphere/bee-js";
 
+import { isLegacyUserComment, isUserComment } from "../asserts";
 import { DEFAULT_BEE_URL } from "../constants/constants";
 import { MessageData, MessageType } from "../model";
 import { UserComment } from "../model/legacy.model";
@@ -71,7 +72,7 @@ export async function readFeedData(
       : feedUpdate.feedIndex.next().toBigInt();
   const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
 
-  return { objectdata: data.toJSON(), nextIndex };
+  return { data: data.toJSON(), nextIndex };
 }
 
 export async function writeFeedData(
@@ -96,11 +97,10 @@ export function isNotFoundError(error: any): boolean {
   );
 }
 
-// todo: test
 export function transformLegacyComment(
   obj: UserComment,
   derivedAddress: string,
-  index: FeedIndex,
+  index: string,
   topic: string,
 ): MessageData {
   const { username, message, timestamp, address } = obj;
@@ -113,7 +113,7 @@ export function transformLegacyComment(
     type: MessageType.TEXT,
     message: text,
     address: address || derivedAddress,
-    index: index.toString(),
+    index,
     topic,
     targetMessageId: threadId,
     signature: undefined,
@@ -123,4 +123,20 @@ export function transformLegacyComment(
   };
 
   return transformed;
+}
+
+export function assertAndTransformData(
+  data: unknown,
+  address: string,
+  index: FeedIndex,
+  identifier: string,
+): MessageData {
+  if (isUserComment(data)) {
+    return data;
+  }
+  if (isLegacyUserComment(data)) {
+    return transformLegacyComment(data, address, index.toString(), identifier);
+  }
+
+  throw new TypeError(`Invalid comment format: ${JSON.stringify(data)}`);
 }

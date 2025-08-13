@@ -3,7 +3,6 @@ import { Bee, FeedIndex, UploadResult } from "@ethersphere/bee-js";
 import { isReactionArray } from "./asserts/models.assert";
 import { Options } from "./model/options.model";
 import { isNotFoundError, prepareReadOptions, prepareWriteOptions, readFeedData, writeFeedData } from "./utils/common";
-import { ReactionError } from "./utils/errors";
 import { getAddressFromIdentifier, getPrivateKeyFromIdentifier } from "./utils/url";
 import { MessageData, MessagesWithIndex } from "./model";
 
@@ -59,13 +58,13 @@ export async function readReactionsWithIndex(index?: FeedIndex, options?: Option
     nextIndex: FeedIndex.MINUS_ONE.toString(),
   } as MessagesWithIndex;
   try {
-    const { objectdata: reactionData, nextIndex } = await readFeedData(bee, identifier, address, index);
+    const { data, nextIndex } = await readFeedData(bee, identifier, address, index);
 
-    if (isReactionArray(reactionData)) {
-      reactionsWithIndex.messages = reactionData;
+    if (isReactionArray(data)) {
+      reactionsWithIndex.messages = data;
       reactionsWithIndex.nextIndex = FeedIndex.fromBigInt(nextIndex).toString();
     } else {
-      throw new ReactionError(`Invalid reactions format: ${JSON.stringify(reactionData)}`);
+      throw new TypeError(`Invalid reactions format: ${JSON.stringify(data)}`);
     }
   } catch (err: any) {
     if (!isNotFoundError(err)) {

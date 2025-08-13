@@ -12,6 +12,6 @@ export interface FeedReferenceResult extends FeedUpdateHeaders {
 }
 
 export interface FeedData {
-  objectdata: any;
+  data: unknown;
   nextIndex: bigint;
 }
