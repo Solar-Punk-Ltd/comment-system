@@ -1,6 +1,7 @@
 import { FeedIndex, PrivateKey, Reference } from "@ethersphere/bee-js";
 import nock from "nock";
 
+import { FEED_INDEX_ZERO } from "../src/constants/constants";
 import { readComments, readCommentsInRange, readSingleComment, writeComment, writeCommentToIndex } from "../src/index";
 
 import {
@@ -116,7 +117,7 @@ describe("Comments tests", () => {
 
   describe("Write to and index and read that single comment", () => {
     it("should write and read a single comment with lookup", async () => {
-      const startIx = FeedIndex.fromBigInt(0n);
+      const startIx = FEED_INDEX_ZERO;
       const socIdentifier0 = "da83f60c89eff2931d88a3293799119ca5fcc65ce3b0b4767ea9b8010e9a6e28";
       const newDataRef0 = "85a759ecacc531cceb36a85e03c22bb6ddfea0f953c140070e41e3a47a1b8015";
       const socReturnRef0 = "eb8da3795ea4f47b17d1b2740ace7ea0f97b85a8d1beb20e7902f48e79076bbc";

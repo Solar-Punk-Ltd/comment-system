@@ -1,4 +1,4 @@
-import { Bee, Bytes, FeedIndex } from "@ethersphere/bee-js";
+import { Bee, Bytes, FeedIndex, UploadResult } from "@ethersphere/bee-js";
 import { Types } from "cafe-utility";
 import { v4 as uuidv4 } from "uuid";
 
@@ -26,9 +26,9 @@ import { commentListToTree } from "./utils";
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
  * @throws StampError if no valid stamp is found.
  *
- * @returns The comment object that was written to the feed or undefined in case of failure.
+ * @returns An UploadResult object returned by the feed update or undefined in case of failure.
  */
-export async function writeComment(comment: MessageData, options?: Options): Promise<MessageData | undefined> {
+export async function writeComment(comment: MessageData, options?: Options): Promise<UploadResult | undefined> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
 
   const signer = optionsSigner || getPrivateKeyFromIdentifier(identifier);
@@ -42,17 +42,15 @@ export async function writeComment(comment: MessageData, options?: Options): Pro
   };
 
   try {
-    await writeFeedData(
+    return await writeFeedData(
       bee,
       new Bytes(identifier).toUint8Array(),
       stamp,
       signer.toUint8Array(),
       JSON.stringify(userCommentObj),
     );
-
-    return userCommentObj;
-  } catch (err) {
-    console.error("Error while writing comment: ", err);
+  } catch (err: any) {
+    console.error("Error while writing comment: ", err.message || err);
     return;
   }
 }
@@ -68,13 +66,13 @@ export async function writeComment(comment: MessageData, options?: Options): Pro
  * @throws IdentifierError if no identifier is provided and it cannot be generated from the privatekey.
  * @throws StampError if no valid stamp is found.
  *
- * @returns The comment object that was written to the feed or undefined in case of failure.
+ * @returns An UploadResult object returned by the feed update or undefined in case of failure.
  */
 export async function writeCommentToIndex(
   comment: MessageData,
   index?: FeedIndex,
   options?: Options,
-): Promise<MessageData | undefined> {
+): Promise<UploadResult | undefined> {
   const { identifier, stamp, beeApiUrl, signer: optionsSigner } = await prepareWriteOptions(options);
   if (index === undefined) {
     console.debug("No index defined - writing comment to the latest index");
@@ -92,7 +90,7 @@ export async function writeCommentToIndex(
   };
 
   try {
-    await writeFeedData(
+    return await writeFeedData(
       bee,
       new Bytes(identifier).toUint8Array(),
       stamp,
@@ -100,10 +98,7 @@ export async function writeCommentToIndex(
       JSON.stringify(userCommentObj),
       index,
     );
-
-    return userCommentObj;
-  } catch (err) {
-    console.error(`Error while writing comment: ${err}`);
+  } catch (err: any) {
     return;
   }
 }
@@ -146,9 +141,9 @@ export async function readComments(options?: Options): Promise<MessageData[] | u
       } else {
         throw new TypeError(`Invalid comment format: ${JSON.stringify(commentData)}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       if (!isNotFoundError(err)) {
-        console.error(`Error while reading comments at index ${(nextIndex - 1n).toString()}:`, err);
+        console.error(`Error while reading comments at index ${(nextIndex - 1n).toString()}:`, err.message || err);
         return;
       }
 
@@ -223,7 +218,8 @@ export async function readCommentsInRange(
 
   const dataPromises: Promise<{ data: Bytes; ix: bigint }>[] = [];
   const feedResults = await Promise.allSettled(feedUpdatePromises);
-  feedResults.forEach(r => {
+
+  for (const r of feedResults) {
     if (r.status === "fulfilled") {
       dataPromises.push(
         bee.downloadData(r.value.result.reference.toUint8Array()).then(data => ({ data, ix: r.value.ix })),
@@ -234,11 +230,12 @@ export async function readCommentsInRange(
         return;
       }
       console.debug("Failed to fetch feed update (not found): ", r.reason);
+      break;
     }
-  });
+  }
 
   const dataResults = await Promise.allSettled(dataPromises);
-  dataResults.forEach(r => {
+  for (const r of dataResults) {
     if (r.status === "fulfilled") {
       const commentData = (r.value.data as Bytes).toJSON();
       if (isUserComment(commentData)) {
@@ -256,8 +253,9 @@ export async function readCommentsInRange(
         return;
       }
       console.debug("Failed to fetch comment data (not found): ", r.reason);
+      break;
     }
-  });
+  }
 
   userComments.sort((a, b) => a.timestamp - b.timestamp);
 
@@ -281,7 +279,7 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
   const bee = new Bee(beeApiUrl);
   const address = optionsAddress || getAddressFromIdentifier(identifier);
 
-  let comment: MessageData = {} as MessageData;
+  let comment: MessageData | undefined;
   try {
     const { objectdata: commentData, nextIndex } = await readFeedData(
       bee,
@@ -302,10 +300,9 @@ export async function readSingleComment(index?: FeedIndex, options?: Options): P
     } else {
       throw new TypeError(`Invalid comment format: ${JSON.stringify(commentData)}`);
     }
-  } catch (err) {
+  } catch (err: any) {
     if (!isNotFoundError(err)) {
-      console.error(`Error while reading single comment at index ${index?.toString()}: ${err}`);
-      return;
+      console.error(`Error while reading single comment at index ${index?.toString()}: ${err.message || err}`);
     }
 
     console.debug(`No comment found at index ${index?.toString()}`);

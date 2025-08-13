@@ -1,5 +1,6 @@
 import { FeedIndex, NULL_ADDRESS, Reference } from "@ethersphere/bee-js";
 
+import { FEED_INDEX_ZERO } from "../src/constants/constants";
 import { MessageData, MessageType } from "../src/model/comment.model";
 
 export const SWARM_ZERO_ADDRESS = new Reference(NULL_ADDRESS);
@@ -14,7 +15,7 @@ export const mockComments: MessageData[] = [
     timestamp: 0,
     type: MessageType.TEXT,
     id: "00",
-    index: FeedIndex.fromBigInt(0n).toString(),
+    index: FEED_INDEX_ZERO.toString(),
     topic: "chat1",
     address: user1.address,
   },
@@ -39,7 +40,7 @@ export const mockReactions: MessageData[] = [
     id: "0",
     timestamp: 0,
     topic: "chat1",
-    index: FeedIndex.fromBigInt(0n).toString(),
+    index: FEED_INDEX_ZERO.toString(),
   },
   {
     username: user2.username,

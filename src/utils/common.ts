@@ -1,4 +1,4 @@
-import { BatchId, Bee, EthAddress, FeedIndex, Topic } from "@ethersphere/bee-js";
+import { BatchId, Bee, EthAddress, FeedIndex, Topic, UploadResult } from "@ethersphere/bee-js";
 
 import { DEFAULT_BEE_URL } from "../constants/constants";
 import { MessageData, MessageType } from "../model";
@@ -81,10 +81,10 @@ export async function writeFeedData(
   signer: Uint8Array | string,
   data: string | Uint8Array,
   index?: FeedIndex,
-): Promise<void> {
+): Promise<UploadResult> {
   const { reference } = await bee.uploadData(stamp, data);
   const feedWriter = bee.makeFeedWriter(topic, signer);
-  await feedWriter.uploadReference(stamp, reference.toUint8Array(), index === undefined ? undefined : { index });
+  return await feedWriter.uploadReference(stamp, reference.toUint8Array(), index === undefined ? undefined : { index });
 }
 
 export function isNotFoundError(error: any): boolean {
