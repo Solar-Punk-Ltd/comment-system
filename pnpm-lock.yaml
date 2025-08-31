@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@ethersphere/bee-js':
-        specifier: ^9.8.1
-        version: 9.8.1
+        specifier: ^10.0.0
+        version: 10.0.0
       cafe-utility:
-        specifier: ^31.1.1
-        version: 31.1.1
+        specifier: ^32.1.0
+        version: 32.1.0
       ethers:
         specifier: ^6.15.0
         version: 6.15.0
@@ -974,8 +974,8 @@ packages:
     resolution: {integrity: sha512-Z5kJ+wU3oA7MMIqVR9tyZRtjYPr4OC004Q4Rw7pgOKUOKkJfZ3O24nz3WYfGRpMDNmcOi3TwQOmgm7B7Tpii0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@ethersphere/bee-js@9.8.1':
-    resolution: {integrity: sha512-crOjFHYPdQPG1ty2KTO5b7spIGRVb6MLucC8KOyUsPk72XYCQLf0FZl8mwKAozqZd6NLOOPZw8E/ftjoz7zYJQ==}
+  '@ethersphere/bee-js@10.0.0':
+    resolution: {integrity: sha512-udOpb05nTOWaNCGC9TNUARqkPbQNDvbtS1FKH1X15lm4bQ+yTrOn/t57TEyduPX46ol+x9zND//F7/gQXr9VBQ==}
     engines: {bee: 2.4.0-390a402e, beeApiVersion: 7.2.0}
 
   '@humanfs/core@0.19.1':
@@ -1993,6 +1993,9 @@ packages:
 
   cafe-utility@31.1.1:
     resolution: {integrity: sha512-1GZGghv6wi5Yfb6DGR02aIwPKH1/ny9w8nlUZM0Mo+dUf0BpmPmy9wKMZZEeaY72LPmDWQtfyoGGgaG5kINsNw==}
+
+  cafe-utility@32.1.0:
+    resolution: {integrity: sha512-2e5Aax4m+184GtoGhLLGDADRYh7YQOmAjUE4pT+EcGeqGCtQKbaICKOeeUAh8XBF9D3UdultHz0jFoa6qE4Tqw==}
 
   call-bind-apply-helpers@1.0.2:
     resolution: {integrity: sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==}
@@ -5304,7 +5307,7 @@ snapshots:
       '@eslint/core': 0.15.2
       levn: 0.4.1
 
-  '@ethersphere/bee-js@9.8.1':
+  '@ethersphere/bee-js@10.0.0':
     dependencies:
       axios: 0.30.0(debug@4.4.1)
       cafe-utility: 31.1.1
@@ -6615,6 +6618,8 @@ snapshots:
 
   cafe-utility@31.1.1: {}
 
+  cafe-utility@32.1.0: {}
+
   call-bind-apply-helpers@1.0.2:
     dependencies:
       es-errors: 1.3.0
@@ -7764,7 +7769,7 @@ snapshots:
       '@babel/parser': 7.27.5
       '@istanbuljs/schema': 0.1.3
       istanbul-lib-coverage: 3.2.2
-      semver: 7.7.1
+      semver: 7.7.2
     transitivePeerDependencies:
       - supports-color
 
@@ -7777,7 +7782,7 @@ snapshots:
   istanbul-lib-source-maps@5.0.6:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
-      debug: 4.4.0
+      debug: 4.4.1
       istanbul-lib-coverage: 3.2.2
     transitivePeerDependencies:
       - supports-color
