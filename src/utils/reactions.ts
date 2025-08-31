@@ -2,8 +2,8 @@ import { Topic } from "@ethersphere/bee-js";
 
 import { MessageData } from "../model";
 
-import { getIdentifierFromUrl } from "./url";
 import { ReactionError } from "./errors";
+import { getIdentifierFromUrl } from "./url";
 
 /**
  * Generates a reaction feed ID based on the provided target comment feed ID.

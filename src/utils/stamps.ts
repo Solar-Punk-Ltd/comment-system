@@ -4,10 +4,10 @@ export async function getUsableStamp(beeApiUrl: string): Promise<PostageBatch | 
   const bee = new Bee(beeApiUrl);
 
   try {
-    const batches = await bee.getAllPostageBatch();
+    const batches = await bee.getPostageBatches();
     return batches.find(batch => batch.usable);
-  } catch (error) {
-    console.error("Error while getting usable stamp: ", error);
+  } catch (err: any) {
+    console.error("Error while getting usable stamp: ", err.message || err);
     return;
   }
 }

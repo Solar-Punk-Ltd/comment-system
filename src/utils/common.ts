@@ -1,11 +1,15 @@
-import { BatchId, Bee, EthAddress, FeedIndex, Topic } from "@ethersphere/bee-js";
+import { BatchId, Bee, EthAddress, FeedIndex, Topic, UploadResult } from "@ethersphere/bee-js";
 
+import { isLegacyUserComment, isUserComment } from "../asserts";
 import { DEFAULT_BEE_URL } from "../constants/constants";
+import { MessageData, MessageType } from "../model";
+import { UserComment } from "../model/legacy.model";
 import { Options } from "../model/options.model";
 import { Optional } from "../model/util.types";
 
 import { IdentifierError, StampError } from "./errors";
 import { getUsableStamp } from "./stamps";
+import { FeedData } from "./types";
 import { getIdentifierFromUrl } from "./url";
 
 async function prepareOptions(
@@ -53,11 +57,6 @@ export function prepareReadOptions(
   return prepareOptions(options, false);
 }
 
-export interface FeedData {
-  objectdata: any;
-  nextIndex: string;
-}
-
 export async function readFeedData(
   bee: Bee,
   identifier: string | Uint8Array,
@@ -69,11 +68,11 @@ export async function readFeedData(
   const feedUpdate = await feedReader.downloadReference(index ? { index } : undefined);
   const nextIndex =
     feedUpdate.feedIndexNext !== undefined
-      ? feedUpdate.feedIndexNext.toString()
-      : feedUpdate.feedIndex.next().toString();
+      ? feedUpdate.feedIndexNext.toBigInt()
+      : feedUpdate.feedIndex.next().toBigInt();
   const data = await bee.downloadData(feedUpdate.reference.toUint8Array());
 
-  return { objectdata: data.toJSON(), nextIndex };
+  return { data: data.toJSON(), nextIndex };
 }
 
 export async function writeFeedData(
@@ -83,10 +82,10 @@ export async function writeFeedData(
   signer: Uint8Array | string,
   data: string | Uint8Array,
   index?: FeedIndex,
-): Promise<void> {
+): Promise<UploadResult> {
   const { reference } = await bee.uploadData(stamp, data);
   const feedWriter = bee.makeFeedWriter(topic, signer);
-  await feedWriter.uploadReference(stamp, reference.toUint8Array(), index === undefined ? undefined : { index });
+  return await feedWriter.uploadReference(stamp, reference.toUint8Array(), index === undefined ? undefined : { index });
 }
 
 export function isNotFoundError(error: any): boolean {
@@ -96,4 +95,48 @@ export function isNotFoundError(error: any): boolean {
     error.message.includes("404") ||
     error.code === 404
   );
+}
+
+export function transformLegacyComment(
+  obj: UserComment,
+  derivedAddress: string,
+  index: string,
+  topic: string,
+): MessageData {
+  const { username, message, timestamp, address } = obj;
+  const { text, messageId, threadId, flagged, reason } = message;
+
+  const transformed: MessageData = {
+    id: messageId,
+    username,
+    timestamp,
+    type: MessageType.TEXT,
+    message: text,
+    address: address || derivedAddress,
+    index,
+    topic,
+    targetMessageId: threadId,
+    signature: undefined,
+    flagged,
+    reason,
+    isLegacy: true,
+  };
+
+  return transformed;
+}
+
+export function assertAndTransformData(
+  data: unknown,
+  address: string,
+  index: FeedIndex,
+  identifier: string,
+): MessageData {
+  if (isUserComment(data)) {
+    return data;
+  }
+  if (isLegacyUserComment(data)) {
+    return transformLegacyComment(data, address, index.toString(), identifier);
+  }
+
+  throw new TypeError(`Invalid comment format: ${JSON.stringify(data)}`);
 }

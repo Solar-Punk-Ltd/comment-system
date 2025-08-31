@@ -28,7 +28,7 @@ const comment = {
   username: "user123",
   address: "user-address",
   timestamp: Date.now(),
-  index: 0,
+  index: "0",
   topic: "your-feed-topic",
   targetMessageId: "parent-message-id",
 };
@@ -58,8 +58,9 @@ writeCommentToIndex(comment, index, options)
   });
 ```
 
-Function writeComment writes a comment to the next feed index. It needs to look up the latest feed index before writing.
-Function writeCommentToIndex writes a comment to the desired specific index.
+Function writeComment writes a comment to the next feed index and returns an UploadResult object. It needs to look up
+the latest feed index before writing. Function writeCommentToIndex writes a comment to the desired specific index and
+returns an UploadResult object.
 
 ### Reading
 
@@ -102,9 +103,11 @@ readSingleComment(index, options)
   });
 ```
 
-Function readComments reads comments from index 0 until the latest found index, in succession. Function
-readCommentsInRange reads comments from the desired index range, in parallel. Function readSingleComment reads one
-single comment at the given index, if not provided it looks up and reads the latest comment.
+Function readComments reads comments from index 0 until the latest found index, in succession. It also supports legacy
+comment formats and automatically transforms them to the current MessageData format. Function readCommentsInRange reads
+comments from the desired index range, in parallel, with improved error handling that distinguishes between critical
+errors and missing comments (404 Not Found). Function readSingleComment reads one single comment at the given index, if
+not provided it looks up and reads the latest comment. It returns the comment data directly as MessageData.
 
 ### Reactions
 
@@ -140,7 +143,7 @@ const newReaction = {
   username: "user123",
   address: "user-address",
   timestamp: Date.now(),
-  index: 0,
+  index: "0",
   topic: "reaction-topic",
   targetMessageId: commentId,
 };
@@ -153,8 +156,9 @@ in case the state needs no update.
 
 ### Writing and Reading
 
-Writing and reading reactions works in a similar way to the comments. Once the new reaction state and feedId is
-determined, it can be simply written as the latest feed update:
+Writing and reading reactions works in a similar way to the comments. The writeReactionsToIndex function now returns an
+UploadResult object, and readReactionsWithIndex always returns a MessagesWithIndex object (never undefined). Once the
+new reaction state and feedId is determined, it can be simply written as the latest feed update:
 
 ```javascript
 import { writeReactionsToIndex, readReactionsWithIndex, getReactionFeedId } from "@solarpunkltd/comment-system";
@@ -188,12 +192,13 @@ interface MessageData {
   username: string;
   address: string;
   timestamp: number;
-  index: number;
+  index: string;
   topic: string; // For the feed indentifier
   targetMessageId?: string; // For replies and reactions
   signature?: string; // For user verification
   flagged?: boolean; // For UI filtering
   reason?: string;
+  isLegacy?: boolean; // Indicates if this was transformed from legacy format
 }
 ```
 
@@ -223,21 +228,23 @@ interface Options {
 }
 ```
 
+<!-- todo: udpate readme to latest signatures -->
+
 ## Functions
 
 ### Comments
 
-- `writeComment(comment: MessageData, options?: Options): Promise<MessageData | undefined>`
-- `writeCommentToIndex(comment: MessageData, index?: FeedIndex, options?: Options): Promise<MessageData | undefined>`
+- `writeComment(comment: MessageData, options?: Options): Promise<UploadResult | undefined>`
+- `writeCommentToIndex(comment: MessageData, index?: FeedIndex, options?: Options): Promise<UploadResult | undefined>`
 - `readComments(options?: Options): Promise<MessageData[] | undefined>`
 - `readCommentsInRange(start?: FeedIndex, end?: FeedIndex, options?: Options): Promise<MessageData[] | undefined>`
 - `readCommentsAsTree(start?: FeedIndex, end?: FeedIndex, options?: Options): Promise<CommentNode[] | undefined>`
-- `readSingleComment(index?: FeedIndex, options?: Options): Promise<SingleMessage | undefined>`
+- `readSingleComment(index?: FeedIndex, options?: Options): Promise<MessageData | undefined>`
 
 ### Reactions
 
-- `writeReactionsToIndex(reactions: MessageData[], index?: FeedIndex, options?: Options): Promise<void>`
-- `readReactionsWithIndex(index?: FeedIndex, options?: Options): Promise<MessageWithIndex | undefined>`
+- `writeReactionsToIndex(reactions: MessageData[], index?: FeedIndex, options?: Options): Promise<UploadResult | undefined>`
+- `readReactionsWithIndex(index?: FeedIndex, options?: Options): Promise<MessagesWithIndex>`
 - `getReactionFeedId(identifier?: string): Topic`
 - `updateReactions(reactions: MessageData[], newReaction: MessageData): MessageData[] | undefined`
 

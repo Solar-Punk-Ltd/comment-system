@@ -1,1 +1,1 @@
-export { isMessageData, isUserComment, isReaction } from "./models.assert";
+export { isMessageData, isUserComment, isReaction, isLegacyUserComment } from "./models.assert";
