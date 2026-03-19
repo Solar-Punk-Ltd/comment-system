@@ -4,10 +4,10 @@ A library for writing and reading comments from the Swarm network utilizing the 
 
 ## Installation
 
-To install the library, use npm or yarn:
+To install the library, use npm or pnpm:
 
 ```bash
-npm i @solarpunkltd/comment-system
+pnpm i @solarpunkltd/comment-system
 ```
 
 ## Usage
@@ -277,6 +277,4 @@ comment-feed app.
 
 ## License
 
-This README provides an overview of the swarm comment-system library, including installation instructions, usage
-examples, and descriptions of the main functions and types. Adjust the content as needed to fit your specific library
-details.
+[Apache-2.0](./LICENSE)
