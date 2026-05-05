@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@ethersphere/bee-js':
-        specifier: ^11.1.1
-        version: 11.1.1
+        specifier: ^12.1.0
+        version: 12.1.0
       cafe-utility:
-        specifier: ^33.6.0
-        version: 33.6.0
+        specifier: ^33.9.0
+        version: 33.9.0
       ethers:
         specifier: ^6.15.0
         version: 6.15.0
@@ -974,8 +974,8 @@ packages:
     resolution: {integrity: sha512-Z5kJ+wU3oA7MMIqVR9tyZRtjYPr4OC004Q4Rw7pgOKUOKkJfZ3O24nz3WYfGRpMDNmcOi3TwQOmgm7B7Tpii0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@ethersphere/bee-js@11.1.1':
-    resolution: {integrity: sha512-s2IpuVpy74cJyhj5yugO3+c9eR/r9TZsVJABk2iHWtTVkoA1qZdvgUjzV0w962o1gXrmYdxX4NOmlyIEpY11iQ==}
+  '@ethersphere/bee-js@12.1.0':
+    resolution: {integrity: sha512-yGoKb2gpKxLo52ZhYbSF/zhOr3JKHPq5FiNhpGCLAN/6ecKx48xXPRCmIsAjTCm9jRNz8Fe6hTyp3wJQRT3x5A==}
     engines: {bee: 2.4.0-390a402e, beeApiVersion: 7.2.0}
 
   '@humanfs/core@0.19.1':
@@ -1879,8 +1879,8 @@ packages:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
-  axios@0.30.2:
-    resolution: {integrity: sha512-0pE4RQ4UQi1jKY6p7u6i1Tkzqmu+d+/tHS7Q7rKunWLB9WyilBTpHHpXzPNMDj5hTbK0B0PTLSz07yqMBiF6xg==}
+  axios@1.16.0:
+    resolution: {integrity: sha512-6hp5CwvTPlN2A31g5dxnwAX0orzM7pmCRDLnZSX772mv8WDqICwFjowHuPs04Mc8deIld1+ejhtaMn5vp6b+1w==}
 
   babel-jest@30.0.5:
     resolution: {integrity: sha512-mRijnKimhGDMsizTvBTWotwNpzrkHr+VvZUQBof2AufXKB8NXrL1W69TG20EvOz7aevx6FTJIaBuBkYxS8zolg==}
@@ -2010,11 +2010,8 @@ packages:
   builtin-status-codes@3.0.0:
     resolution: {integrity: sha512-HpGFw18DgFWlncDfjTa2rcQ4W88O1mC8e8yZ2AvQY5KDaktSTwo+KRf6nHK6FRI5FyRyb/5T6+TSxfP7QyGsmQ==}
 
-  cafe-utility@33.6.0:
-    resolution: {integrity: sha512-MyXjck4cf6+WahnRWpS083qA0Ib9XAgSVOfdd+mSwAWiyK0fMs0+khXHTLHTRA+nIZIJFVDEcMX8Cnc8G8NEDw==}
-
-  cafe-utility@33.8.0:
-    resolution: {integrity: sha512-qfbG8nHTY5jBfCSedG9+b57avhKePdiHfj2w0FMGokJuQU+3dxeT9+qasMReoXHBDp38CFHMSEvz5X0SDCXbWA==}
+  cafe-utility@33.9.0:
+    resolution: {integrity: sha512-MrTuoypjKKnfJg7CqbPbN2ugXuPp0qG5mLdJMjG9GzeGhMDBxD3xhM4EnmPh7+rH4sFqx29c4caxg3oU+eT/Zw==}
 
   call-bind-apply-helpers@1.0.2:
     resolution: {integrity: sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==}
@@ -2595,8 +2592,8 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
-  follow-redirects@1.15.9:
-    resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
+  follow-redirects@1.16.0:
+    resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -3601,8 +3598,9 @@ packages:
     resolution: {integrity: sha512-vGrhOavPSTz4QVNuBNdcNXePNdNMaO1xj9yBeH1ScQPjk/rhg9sSlCXPhMkFuaNNW/syTvYqsnbIJxMBfRbbag==}
     engines: {node: '>= 8'}
 
-  proxy-from-env@1.1.0:
-    resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
+  proxy-from-env@2.1.0:
+    resolution: {integrity: sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==}
+    engines: {node: '>=10'}
 
   public-encrypt@4.0.3:
     resolution: {integrity: sha512-zVpa8oKZSz5bTMTFClc1fQOnyyEzpl5ozpi1B5YcvBrdohMjH2rfsBtyXcuNuwjsDIXmBYlF2N5FlJYhR29t8Q==}
@@ -5326,10 +5324,10 @@ snapshots:
       '@eslint/core': 0.15.2
       levn: 0.4.1
 
-  '@ethersphere/bee-js@11.1.1':
+  '@ethersphere/bee-js@12.1.0':
     dependencies:
-      axios: 0.30.2(debug@4.4.1)
-      cafe-utility: 33.8.0
+      axios: 1.16.0(debug@4.4.1)
+      cafe-utility: 33.9.0
       debug: 4.4.1
       isomorphic-ws: 4.0.1(ws@8.18.1)
       semver: 7.7.2
@@ -6437,11 +6435,11 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.1.0
 
-  axios@0.30.2(debug@4.4.1):
+  axios@1.16.0(debug@4.4.1):
     dependencies:
-      follow-redirects: 1.15.9(debug@4.4.1)
+      follow-redirects: 1.16.0(debug@4.4.1)
       form-data: 4.0.5
-      proxy-from-env: 1.1.0
+      proxy-from-env: 2.1.0
     transitivePeerDependencies:
       - debug
 
@@ -6635,9 +6633,7 @@ snapshots:
 
   builtin-status-codes@3.0.0: {}
 
-  cafe-utility@33.6.0: {}
-
-  cafe-utility@33.8.0: {}
+  cafe-utility@33.9.0: {}
 
   call-bind-apply-helpers@1.0.2:
     dependencies:
@@ -7410,7 +7406,7 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  follow-redirects@1.15.9(debug@4.4.1):
+  follow-redirects@1.16.0(debug@4.4.1):
     optionalDependencies:
       debug: 4.4.1
 
@@ -8649,7 +8645,7 @@ snapshots:
 
   propagate@2.0.1: {}
 
-  proxy-from-env@1.1.0: {}
+  proxy-from-env@2.1.0: {}
 
   public-encrypt@4.0.3:
     dependencies:
