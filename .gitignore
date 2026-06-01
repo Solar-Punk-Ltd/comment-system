@@ -4,7 +4,6 @@ build
 dist
 .env
 coverage/
-pnpm-workspace.yaml
 
 logs
 *.log

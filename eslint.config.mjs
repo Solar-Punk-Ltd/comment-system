@@ -53,7 +53,13 @@ const prettierRecommended = {
 
 export default [
   {
-    ignores: ["**/node_modules/**", "**/dist/**", "eslint.config.mjs", "eslint-compat.cjs", "**/*commitlint.config.js"],
+    ignores: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "eslint.config.mjs",
+      "eslint-compat.cjs",
+      "**/*commitlint.config.cjs",
+    ],
   },
   {
     settings: {

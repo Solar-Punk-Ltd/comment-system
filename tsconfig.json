@@ -2,8 +2,8 @@
   "include": ["src"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM"],
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "resolveJsonModule": true,
@@ -13,6 +13,7 @@
     "declarationMap": true,
     "declarationDir": "./dist/types",
     "sourceMap": true,
+    "rootDir": "src",
     "outDir": "dist",
     "strict": true,
     "alwaysStrict": true,

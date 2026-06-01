@@ -1,0 +1,19 @@
+{
+  "ignores": [
+    "@types/*",
+    "@babel/*",
+    "@commitlint/*",
+    "@eslint/*",
+    "babel*",
+    "eslint*",
+    "cross-env",
+    "husky",
+    "rimraf",
+    "prettier",
+    "typescript*",
+    "ts-node",
+    "ts-jest",
+    "nock",
+    "vite*"
+  ]
+}
